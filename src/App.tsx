@@ -9,11 +9,13 @@ import {
   Container,
   Paper,
 } from '@mui/material';
+import Header from './components/Header';
 
 const steps = [
-  'Select campaign settings',
-  'Create an ad group',
-  'Create an ad',
+  'Personal Information',
+  'Academic History',
+  'Program Selection',
+  'Document Upload',
 ];
 
 const App: FC = (): ReactElement => {
@@ -46,75 +48,140 @@ const App: FC = (): ReactElement => {
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return 'Select campaign settings and configure your preferences...';
+        return 'Please fill in your personal details...';
       case 1:
-        return 'Define your ad group parameters and target audience...';
+        return 'Enter your academic qualifications and history...';
       case 2:
-        return 'Create your advertisement content and preview...';
+        return 'Select your preferred program of study...';
+      case 3:
+        return 'Upload required documents...';
       default:
         return 'Unknown step';
     }
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Stepper activeStep={activeStep}>
-          {steps.map((label, index) => {
-            const stepProps: { completed?: boolean } = {};
-            if (isStepSkipped(index)) {
-              stepProps.completed = false;
-            }
-            return (
-              <Step key={label} {...stepProps}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            );
-          })}
-        </Stepper>
-        {activeStep === steps.length ? (
-          <>
-            <Box sx={{ mt: 4, mb: 2 }}>
-              <Typography>All steps completed!</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-              <Box sx={{ flex: '1 1 auto' }} />
-              <Button onClick={handleReset}>Reset</Button>
-            </Box>
-          </>
-        ) : (
-          <>
-            <Box sx={{ mt: 4, mb: 2 }}>
-              <Typography>{getStepContent(activeStep)}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-              <Button
-                variant="contained"
-                color="inherit"
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                sx={{ mr: 1 }}
-              >
-                Back
-              </Button>
-              <Box sx={{ flex: '1 1 auto' }} />
-              <Button 
-                variant="contained" 
-                onClick={handleNext}
-                sx={{
-                  bgcolor: 'primary.main',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
-                }}
-              >
-                {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-              </Button>
-            </Box>
-          </>
-        )}
-      </Paper>
-    </Container>
+    <Box sx={{ 
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5'
+    }}>
+      <Header />
+      <Container maxWidth="md" sx={{ 
+        mt: 4,
+        mb: 4,
+        '@media (max-width: 600px)': {
+          mt: 2,
+          px: 2,
+        },
+      }}>
+        <Paper elevation={3} sx={{ 
+          p: { xs: 2, sm: 4 },
+          borderRadius: 2,
+        }}>
+          <Typography 
+            variant="h6" 
+            component="h2" 
+            sx={{ 
+              mb: 3, 
+              textAlign: 'center', 
+              color: '#13A215',
+              fontWeight: 600,
+            }}
+          >
+            Application Process
+          </Typography>
+          <Stepper 
+            activeStep={activeStep}
+            sx={{
+              '@media (max-width: 600px)': {
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                '& .MuiStep-root': {
+                  width: '100%',
+                  mb: 2,
+                },
+              },
+            }}
+          >
+            {steps.map((label, index) => {
+              const stepProps: { completed?: boolean } = {};
+              if (isStepSkipped(index)) {
+                stepProps.completed = false;
+              }
+              return (
+                <Step key={label} {...stepProps}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              );
+            })}
+          </Stepper>
+          {activeStep === steps.length ? (
+            <>
+              <Box sx={{ mt: 4, mb: 2 }}>
+                <Typography>Application submitted successfully!</Typography>
+                <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
+                  Thank you for applying to Women's University of Africa. You will receive a confirmation email shortly.
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                <Box sx={{ flex: '1 1 auto' }} />
+                <Button 
+                  onClick={handleReset}
+                  variant="outlined"
+                  sx={{ 
+                    color: '#13A215',
+                    borderColor: '#13A215',
+                    '&:hover': {
+                      borderColor: '#0B8A0D',
+                      backgroundColor: 'rgba(19, 162, 21, 0.04)',
+                    },
+                  }}
+                >
+                  Start New Application
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Box sx={{ mt: 4, mb: 2 }}>
+                <Typography>{getStepContent(activeStep)}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                <Button
+                  variant="outlined"
+                  disabled={activeStep === 0}
+                  onClick={handleBack}
+                  sx={{ 
+                    mr: 1,
+                    color: '#13A215',
+                    borderColor: '#13A215',
+                    '&:hover': {
+                      borderColor: '#0B8A0D',
+                      backgroundColor: 'rgba(19, 162, 21, 0.04)',
+                    },
+                  }}
+                >
+                  Back
+                </Button>
+                <Box sx={{ flex: '1 1 auto' }} />
+                <Button 
+                  variant="contained" 
+                  onClick={handleNext}
+                  sx={{
+                    background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+                    },
+                  }}
+                >
+                  {activeStep === steps.length - 1 ? 'Submit Application' : 'Next'}
+                </Button>
+              </Box>
+            </>
+          )}
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

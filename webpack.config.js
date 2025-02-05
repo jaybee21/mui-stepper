@@ -6,16 +6,43 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js",
+    assetModuleFilename: 'images/[hash][ext][query]'
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js"],
+    extensions: [".tsx", ".ts", ".js", ".png", ".jpg", ".jpeg"],
   },
   module: {
     rules: [
       {
         test: /\.(ts|tsx)$/,
-        use: "ts-loader",
         exclude: /node_modules/,
+        use: "ts-loader",
+      },
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: [
+              "@babel/preset-env",
+              "@babel/preset-react",
+              "@babel/preset-typescript",
+            ],
+          },
+        },
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif|svg)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+              outputPath: 'images/',
+            },
+          },
+        ],
       },
     ],
   },
@@ -25,8 +52,10 @@ module.exports = {
     }),
   ],
   devServer: {
-    static: path.resolve(__dirname, "dist"),
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
     port: 3000,
-    open: true,
+    hot: true,
   },
 };
