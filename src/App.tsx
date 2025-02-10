@@ -61,10 +61,15 @@ const App: FC = (): ReactElement => {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      backgroundColor: '#f5f5f5'
-    }}>
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        backgroundImage: 'url(/wuabackground.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <Header />
       <Container maxWidth="md" sx={{ 
         mt: 4,
@@ -77,6 +82,7 @@ const App: FC = (): ReactElement => {
         <Paper elevation={3} sx={{ 
           p: { xs: 2, sm: 4 },
           borderRadius: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
         }}>
           <Typography 
             variant="h6" 
