@@ -10,11 +10,11 @@ import {
   Paper,
 } from '@mui/material';
 import Header from './components/Header';
+import StepOne from './components/StepOne';
 
 const steps = [
-  'Personal Information',
-  'Academic History',
   'Program Selection',
+  'Academic History',
   'Document Upload',
 ];
 
@@ -48,12 +48,10 @@ const App: FC = (): ReactElement => {
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return 'Please fill in your personal details...';
+        return <StepOne />;
       case 1:
         return 'Enter your academic qualifications and history...';
       case 2:
-        return 'Select your preferred program of study...';
-      case 3:
         return 'Upload required documents...';
       default:
         return 'Unknown step';
@@ -150,7 +148,7 @@ const App: FC = (): ReactElement => {
           ) : (
             <>
               <Box sx={{ mt: 4, mb: 2 }}>
-                <Typography>{getStepContent(activeStep)}</Typography>
+                {getStepContent(activeStep)}
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                 <Button
