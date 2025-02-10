@@ -15,13 +15,19 @@ import StepTwo from './components/StepTwo'; // Import StepTwo
 import StepThree from './components/StepThree'; // Import StepThree
 import StepFour from './components/StepFour'; // Import StepFour
 import StepFive from './components/StepFive'; // Import StepFive
+import StepSix from './components/StepSix'; // Import StepSix
+import StepSeven from './components/StepSeven'; // Import StepSeven
+import StepEight from './components/StepEight'; // Import StepEight
 
 const steps = [
   'Program Selection',
   'Personal Information',
   'Next of Kin Information',
   'Disability Information',
-  'Secondary School Qualifications', // Updated step name
+  'Education',
+  'Experience',
+  'Upload Docs',
+  'Submission', // Updated step name
 ];
 
 const App: FC = (): ReactElement => {
@@ -63,6 +69,12 @@ const App: FC = (): ReactElement => {
         return <StepFour />; // Render StepFour component
       case 4:
         return <StepFive />; // Render StepFive component
+      case 5:
+        return <StepSix />; // Render StepSix component
+      case 6:
+        return <StepSeven />; // Render StepSeven component
+      case 7:
+        return <StepEight />; // Render StepEight component
       default:
         return 'Unknown step';
     }
