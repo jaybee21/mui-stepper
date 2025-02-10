@@ -11,11 +11,13 @@ import {
 } from '@mui/material';
 import Header from './components/Header';
 import StepOne from './components/StepOne';
+import StepTwo from './components/StepTwo';
+import StepThree from './components/StepThree';
 
 const steps = [
   'Program Selection',
-  'Academic History',
-  'Document Upload',
+  'Personal Information',
+  'Next of Kin Information',
 ];
 
 const App: FC = (): ReactElement => {
@@ -50,9 +52,9 @@ const App: FC = (): ReactElement => {
       case 0:
         return <StepOne />;
       case 1:
-        return 'Enter your academic qualifications and history...';
+        return <StepTwo />;
       case 2:
-        return 'Upload required documents...';
+        return <StepThree />;
       default:
         return 'Unknown step';
     }
