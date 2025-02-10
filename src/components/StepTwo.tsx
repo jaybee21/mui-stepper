@@ -10,6 +10,8 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Checkbox,
+  FormGroup,
 } from '@mui/material';
 
 const StepTwo: React.FC = () => {
@@ -31,6 +33,26 @@ const StepTwo: React.FC = () => {
   const [postalAddress, setPostalAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [hasDisability, setHasDisability] = useState('no');
+  const [disabilities, setDisabilities] = useState({
+    blindness: false,
+    cerebralPalsy: false,
+    deafness: false,
+    speechImpairment: false,
+    other: false,
+  });
+  const [otherDescription, setOtherDescription] = useState('');
+
+  const handleDisabilityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHasDisability(event.target.value);
+  };
+
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDisabilities({
+      ...disabilities,
+      [event.target.name]: event.target.checked,
+    });
+  };
 
   return (
     <Box sx={{ mt: 4 }}>
@@ -225,6 +247,87 @@ const StepTwo: React.FC = () => {
         onChange={(e) => setEmail(e.target.value)}
         sx={{ mb: 2 }}
       />
+
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        Do you have any disabilities?
+      </Typography>
+      <FormControl component="fieldset">
+        <RadioGroup row value={hasDisability} onChange={handleDisabilityChange}>
+          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+          <FormControlLabel value="no" control={<Radio />} label="No" />
+        </RadioGroup>
+      </FormControl>
+
+      {hasDisability === 'yes' && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Please specify your disabilities:
+          </Typography>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={disabilities.blindness}
+                  onChange={handleCheckboxChange}
+                  name="blindness"
+                />
+              }
+              label="Blindness"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={disabilities.cerebralPalsy}
+                  onChange={handleCheckboxChange}
+                  name="cerebralPalsy"
+                />
+              }
+              label="Cerebral Palsy"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={disabilities.deafness}
+                  onChange={handleCheckboxChange}
+                  name="deafness"
+                />
+              }
+              label="Deafness"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={disabilities.speechImpairment}
+                  onChange={handleCheckboxChange}
+                  name="speechImpairment"
+                />
+              }
+              label="Speech Impairment"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={disabilities.other}
+                  onChange={handleCheckboxChange}
+                  name="other"
+                />
+              }
+              label="Other"
+            />
+          </FormGroup>
+
+          {disabilities.other && (
+            <TextField
+              fullWidth
+              label="Please specify"
+              variant="outlined"
+              value={otherDescription}
+              onChange={(e) => setOtherDescription(e.target.value)}
+              sx={{ mb: 2, mt: 2 }}
+            />
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

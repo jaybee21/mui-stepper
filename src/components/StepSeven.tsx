@@ -32,7 +32,7 @@ const StepSeven: React.FC = () => {
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        NOTE: This is your Reference Number: APL254002. Keep it safe. You will be required to use it in the next session if you do not complete your application now.
+        NOTE: This is your Reference Number: #######. Keep it safe. You will be required to use it in the next session if you do not complete your application now.
       </Typography>
 
       <Typography variant="body1" sx={{ mb: 2 }}>
