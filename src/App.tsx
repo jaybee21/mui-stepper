@@ -10,14 +10,18 @@ import {
   Paper,
 } from '@mui/material';
 import Header from './components/Header';
-import StepOne from './components/StepOne';
-import StepTwo from './components/StepTwo';
-import StepThree from './components/StepThree';
+import StepOne from './components/StepOne'; // Import StepOne
+import StepTwo from './components/StepTwo'; // Import StepTwo
+import StepThree from './components/StepThree'; // Import StepThree
+import StepFour from './components/StepFour'; // Import StepFour
+import StepFive from './components/StepFive'; // Import StepFive
 
 const steps = [
   'Program Selection',
   'Personal Information',
   'Next of Kin Information',
+  'Disability Information',
+  'Secondary School Qualifications', // Updated step name
 ];
 
 const App: FC = (): ReactElement => {
@@ -50,11 +54,15 @@ const App: FC = (): ReactElement => {
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <StepOne />;
+        return <StepOne />; // Render StepOne component
       case 1:
-        return <StepTwo />;
+        return <StepTwo />; // Render StepTwo component
       case 2:
-        return <StepThree />;
+        return <StepThree />; // Render StepThree component
+      case 3:
+        return <StepFour />; // Render StepFour component
+      case 4:
+        return <StepFive />; // Render StepFive component
       default:
         return 'Unknown step';
     }
@@ -150,7 +158,7 @@ const App: FC = (): ReactElement => {
           ) : (
             <>
               <Box sx={{ mt: 4, mb: 2 }}>
-                {getStepContent(activeStep)}
+                {getStepContent(activeStep)} {/* Render step content */}
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                 <Button
