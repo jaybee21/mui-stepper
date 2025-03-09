@@ -82,17 +82,22 @@ const MainContent: FC = () => {
   return (
     <Box 
       sx={{ 
-        minHeight: '150vh',
+        minHeight: '100vh',
         backgroundImage: 'url(/wuabackground.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        display: 'flex',
+        flexDirection: 'column',
+        pb: 8,
       }}
     >
       <Header />
       <Container maxWidth="md" sx={{ 
         mt: 4,
         mb: 4,
+        flex: 1,
         '@media (max-width: 600px)': {
           mt: 2,
           px: 2,
@@ -101,7 +106,8 @@ const MainContent: FC = () => {
         <Paper elevation={3} sx={{ 
           p: { xs: 2, sm: 4 },
           borderRadius: 2,
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          mb: 4,
         }}>
           <Typography 
             variant="h6" 
@@ -220,10 +226,13 @@ const App: FC = (): ReactElement => {
         <Route 
           path="/admin" 
           element={
-            isAuthenticated ? 
-            <Dashboard /> : 
-            <Login setIsAuthenticated={setIsAuthenticated} />
-          } 
+            <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
+              {isAuthenticated ? 
+                <Dashboard /> : 
+                <Login setIsAuthenticated={setIsAuthenticated} />
+              }
+            </Box>
+          }
         />
       </Routes>
     </BrowserRouter>

@@ -17,7 +17,7 @@
     "@babel/preset-typescript": "^7.26.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.15.12",
+    "@mui/icons-material": "^5.16.14",
     "@mui/material": "^5.15.12",
     "@types/react-router-dom": "^5.3.3",
     "babel-loader": "^9.2.1",
