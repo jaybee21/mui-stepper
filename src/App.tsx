@@ -1,4 +1,5 @@
 import { FC, ReactElement, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import {
   Box,
   Stepper,
@@ -17,6 +18,8 @@ import StepFive from './components/StepFive'; // Import StepFive
 import StepSix from './components/StepSix'; // Import StepSix
 import StepSeven from './components/StepSeven'; // Import StepSeven
 import StepEight from './components/StepEight'; // Import StepEight
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 
 const steps = [
   'Program Selection',
@@ -28,7 +31,7 @@ const steps = [
   'Submission',
 ];
 
-const App: FC = (): ReactElement => {
+const MainContent: FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set<number>());
 
@@ -79,7 +82,7 @@ const App: FC = (): ReactElement => {
   return (
     <Box 
       sx={{ 
-        minHeight: '100vh',
+        minHeight: '150vh',
         backgroundImage: 'url(/wuabackground.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -204,6 +207,26 @@ const App: FC = (): ReactElement => {
         </Paper>
       </Container>
     </Box>
+  );
+};
+
+const App: FC = (): ReactElement => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainContent />} />
+        <Route 
+          path="/admin" 
+          element={
+            isAuthenticated ? 
+            <Dashboard /> : 
+            <Login setIsAuthenticated={setIsAuthenticated} />
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
