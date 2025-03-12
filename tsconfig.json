@@ -15,7 +15,8 @@
       "isolatedModules": true,
       "jsx": "react-jsx",
       "outDir": "./dist",
-      "noEmit": false
+      "noEmit": false,
+      "typeRoots": ["./node_modules/@types", "./node_modules/@mui/types"]
     },
     "include": ["src"],
     "exclude": ["node_modules"]

@@ -9,7 +9,13 @@ module.exports = {
     assetModuleFilename: 'images/[hash][ext][query]'
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js", ".png", ".jpg", ".jpeg"],
+    extensions: [".tsx", ".ts", ".js", ".jsx", ".json", ".png", ".jpg", ".jpeg"],
+    fallback: {
+      "path": false,
+      "stream": false,
+      "zlib": false,
+      "crypto": false
+    }
   },
   module: {
     rules: [
@@ -20,7 +26,7 @@ module.exports = {
       },
       {
         test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!(recharts|d3-*)\/).*/,
         use: {
           loader: "babel-loader",
           options: {
