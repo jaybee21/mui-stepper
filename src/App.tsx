@@ -1,5 +1,5 @@
 import { FC, ReactElement, useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import {
   Box,
   Stepper,
@@ -226,13 +226,18 @@ const App: FC = (): ReactElement => {
         <Route 
           path="/admin" 
           element={
-            <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5' }}>
-              {isAuthenticated ? 
-                <Dashboard /> : 
-                <Login setIsAuthenticated={setIsAuthenticated} />
-              }
-            </Box>
-          }
+            isAuthenticated ? 
+              <Navigate to="/admin/dashboard" /> : 
+              <Login setIsAuthenticated={setIsAuthenticated} />
+          } 
+        />
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            isAuthenticated ? 
+              <Dashboard /> : 
+              <Navigate to="/admin" />
+          } 
         />
       </Routes>
     </BrowserRouter>

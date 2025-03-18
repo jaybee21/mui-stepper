@@ -29,6 +29,15 @@ import {
   TableRow,
   Button,
   Chip,
+  Menu,
+  Tooltip,
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  CircularProgress,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -42,6 +51,11 @@ import {
   Cancel as CancelIcon,
   TrendingUp as TrendingUpIcon,
   Visibility as VisibilityIcon,
+  Settings as SettingsIcon,
+  AccountCircle as AccountCircleIcon,
+  Logout as LogoutIcon,
+  LockReset as LockResetIcon,
+  Person as ProfileIcon,
 } from '@mui/icons-material';
 import {
   BarChart,
@@ -49,7 +63,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
   LineChart,
@@ -62,6 +76,8 @@ import WaitingAcceptance from './WaitingAcceptance';
 import WaitingPin from './WaitingPin';
 import WithPin from './WithPin';
 import ProspectiveStudents from './ProspectiveStudents';
+import { removeAuthToken } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
 
 // Sample data
 const monthlyStats = [
@@ -160,6 +176,10 @@ const Dashboard: FC = () => {
   const [timeFilter, setTimeFilter] = useState('thisMonth');
   const [activeTab, setActiveTab] = useState<TabId>(TabId.DASHBOARD);
   const theme = useTheme();
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [anchorElSettings, setAnchorElSettings] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
+  const [openProfileDialog, setOpenProfileDialog] = useState(false);
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -337,7 +357,7 @@ const Dashboard: FC = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
                 <Line 
                   type="monotone" 
@@ -381,7 +401,7 @@ const Dashboard: FC = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -399,7 +419,7 @@ const Dashboard: FC = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip />
                 <Legend />
                 <Bar dataKey="applications" fill="#13A215" />
                 <Bar dataKey="accepted" fill="#0088FE" />
@@ -430,6 +450,39 @@ const Dashboard: FC = () => {
     }
   };
 
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
+  const handleOpenSettingsMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElSettings(event.currentTarget);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
+
+  const handleCloseSettingsMenu = () => {
+    setAnchorElSettings(null);
+  };
+
+  const handleLogout = () => {
+    removeAuthToken();
+    handleCloseUserMenu();
+    window.location.href = '/admin';
+  };
+
+  const handlePasswordReset = () => {
+    // Implement password reset logic here
+    alert('Password reset functionality will be implemented here');
+    handleCloseSettingsMenu();
+  };
+
+  const handleUpdateProfile = () => {
+    setOpenProfileDialog(true);
+    handleCloseSettingsMenu();
+  };
+
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar 
@@ -445,12 +498,96 @@ const Dashboard: FC = () => {
             aria-label="open drawer"
             onClick={toggleDrawer}
             edge="start"
+            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             WUA Admin Dashboard
           </Typography>
+
+          {/* Settings Menu */}
+          <Box sx={{ mr: 2 }}>
+            <Tooltip title="Settings">
+              <IconButton onClick={handleOpenSettingsMenu} sx={{ color: 'white' }}>
+                <SettingsIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              sx={{ mt: '45px' }}
+              id="settings-menu"
+              anchorEl={anchorElSettings}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorElSettings)}
+              onClose={handleCloseSettingsMenu}
+            >
+              <MenuItem onClick={handleUpdateProfile}>
+                <ListItemIcon>
+                  <ProfileIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography textAlign="center">Update Profile</Typography>
+              </MenuItem>
+              <MenuItem onClick={handlePasswordReset}>
+                <ListItemIcon>
+                  <LockResetIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography textAlign="center">Reset Password</Typography>
+              </MenuItem>
+            </Menu>
+          </Box>
+
+          {/* User Menu */}
+          <Box>
+            <Tooltip title="Account settings">
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar 
+                  sx={{ 
+                    bgcolor: 'white',
+                    color: '#13A215',
+                  }}
+                >
+                  <AccountCircleIcon />
+                </Avatar>
+              </IconButton>
+            </Tooltip>
+            <Menu
+              sx={{ mt: '45px' }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
+              <MenuItem disabled>
+                <Typography textAlign="center" sx={{ fontSize: '0.9rem', color: 'text.secondary' }}>
+                  Logged in as Admin
+                </Typography>
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography textAlign="center">Logout</Typography>
+              </MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -520,6 +657,64 @@ const Dashboard: FC = () => {
         <Toolbar />
         {renderContent()}
       </Box>
+
+      {/* Add Profile Update Dialog */}
+      <Dialog 
+        open={openProfileDialog} 
+        onClose={() => setOpenProfileDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Update Profile</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Full Name"
+              margin="normal"
+              name="fullName"
+              // Add value and onChange handlers when implementing
+            />
+            <TextField
+              fullWidth
+              label="Email"
+              margin="normal"
+              name="email"
+              type="email"
+              // Add value and onChange handlers when implementing
+            />
+            <TextField
+              fullWidth
+              label="Phone Number"
+              margin="normal"
+              name="phone"
+              // Add value and onChange handlers when implementing
+            />
+            <TextField
+              fullWidth
+              label="Department"
+              margin="normal"
+              name="department"
+              // Add value and onChange handlers when implementing
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenProfileDialog(false)}>Cancel</Button>
+          <Button 
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+              },
+            }}
+            // Add onClick handler when implementing
+          >
+            Update Profile
+      </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

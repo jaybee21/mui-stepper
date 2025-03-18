@@ -10,6 +10,7 @@ import {
   Avatar,
   InputAdornment,
   IconButton,
+  CircularProgress,
 } from '@mui/material';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -25,11 +26,9 @@ interface LoginProps {
   setIsAuthenticated: (value: boolean) => void;
 }
 
-const SAMPLE_USERS = [
-  { username: 'admin', password: 'password' },
-  { username: 'user1', password: 'test123' },
-  { username: 'demo', password: 'demo123' }
-];
+interface LoginResponse {
+  token: string;
+}
 
 const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
   const [username, setUsername] = useState('');
@@ -37,17 +36,40 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    const isValidUser = SAMPLE_USERS.some(
-      user => user.username === username && user.password === password
-    );
+  const handleLogin = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('http://localhost:3000/dev/api/v1/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
 
-    if (isValidUser) {
-      setIsAuthenticated(true);
-    } else {
-      setErrorMessage('Invalid username or password');
+      if (response.status === 200) {
+        const data: LoginResponse = await response.json();
+        // Store token in sessionStorage
+        sessionStorage.setItem('authToken', data.token);
+        // Store token in localStorage if you want it to persist after browser close
+        // localStorage.setItem('authToken', data.token);
+        
+        setIsAuthenticated(true);
+      } else {
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || 'Login failed. Please try again.');
+        setOpen(true);
+      }
+    } catch (error) {
+      setErrorMessage('Network error. Please try again.');
       setOpen(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -112,6 +134,7 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyPress={handleKeyPress}
+            disabled={isLoading}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -130,6 +153,7 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyPress={handleKeyPress}
+            disabled={isLoading}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -137,6 +161,7 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
                     aria-label="toggle password visibility"
                     onClick={() => setShowPassword(!showPassword)}
                     edge="end"
+                    disabled={isLoading}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -149,6 +174,7 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
             fullWidth
             variant="contained"
             onClick={handleLogin}
+            disabled={isLoading}
             sx={{
               mt: 2,
               mb: 2,
@@ -162,7 +188,11 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
               fontSize: '1.1rem',
             }}
           >
-            Sign In
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Sign In'
+            )}
           </Button>
         </Paper>
       </Box>
