@@ -76,7 +76,7 @@ import WaitingAcceptance from './WaitingAcceptance';
 import WaitingPin from './WaitingPin';
 import WithPin from './WithPin';
 import ProspectiveStudents from './ProspectiveStudents';
-import { removeAuthToken } from '../utils/auth';
+import { removeAuthToken, decodeToken, fetchUserProfile, updateUserProfile, resetPassword } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
 // Sample data
@@ -180,6 +180,27 @@ const Dashboard: FC = () => {
   const [anchorElSettings, setAnchorElSettings] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const [openProfileDialog, setOpenProfileDialog] = useState(false);
+  const [profileData, setProfileData] = useState({
+    username: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobileNumber: '',
+    idNumber: '',
+    department: '',
+    role: '',
+    isFirstLogin: false
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    username: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -473,14 +494,112 @@ const Dashboard: FC = () => {
   };
 
   const handlePasswordReset = () => {
-    // Implement password reset logic here
-    alert('Password reset functionality will be implemented here');
+    const decoded = decodeToken();
+    if (decoded) {
+      setPasswordData(prev => ({ ...prev, username: decoded.username }));
+      setOpenPasswordDialog(true);
+    }
     handleCloseSettingsMenu();
   };
 
-  const handleUpdateProfile = () => {
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    setPasswordError('');
+  };
+
+  const handlePasswordSubmit = async () => {
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    // Validate password length
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setIsPasswordLoading(true);
+      await resetPassword(passwordData.username, passwordData.newPassword);
+      setOpenPasswordDialog(false);
+      // Reset form
+      setPasswordData({
+        username: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      // Show success message
+      alert('Password updated successfully');
+    } catch (error) {
+      setPasswordError('Failed to update password');
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
     setOpenProfileDialog(true);
     handleCloseSettingsMenu();
+    
+    try {
+      const decoded = decodeToken();
+      if (!decoded) {
+        setError('Invalid token');
+        return;
+      }
+
+      setIsLoading(true);
+      const userData = await fetchUserProfile(decoded.userId);
+      setProfileData({
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        mobileNumber: userData.mobileNumber,
+        idNumber: userData.idNumber,
+        department: userData.department,
+        role: userData.role,
+        isFirstLogin: Boolean(userData.isFirstLogin)
+      });
+    } catch (error) {
+      setError('Failed to fetch profile data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProfileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setProfileData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleProfileSubmit = async () => {
+    try {
+      const decoded = decodeToken();
+      if (!decoded) {
+        setError('Invalid token');
+        return;
+      }
+
+      setIsLoading(true);
+      await updateUserProfile(decoded.userId, profileData);
+      setOpenProfileDialog(false);
+      // Show success message
+    } catch (error) {
+      setError('Failed to update profile');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -667,13 +786,36 @@ const Dashboard: FC = () => {
       >
         <DialogTitle>Update Profile</DialogTitle>
         <DialogContent>
+          {error && (
+            <Typography color="error" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+          )}
           <Box sx={{ mt: 2 }}>
             <TextField
               fullWidth
-              label="Full Name"
+              label="Username"
               margin="normal"
-              name="fullName"
-              // Add value and onChange handlers when implementing
+              name="username"
+              value={profileData.username}
+              onChange={handleProfileChange}
+              disabled
+            />
+            <TextField
+              fullWidth
+              label="First Name"
+              margin="normal"
+              name="firstName"
+              value={profileData.firstName}
+              onChange={handleProfileChange}
+            />
+            <TextField
+              fullWidth
+              label="Last Name"
+              margin="normal"
+              name="lastName"
+              value={profileData.lastName}
+              onChange={handleProfileChange}
             />
             <TextField
               fullWidth
@@ -681,38 +823,140 @@ const Dashboard: FC = () => {
               margin="normal"
               name="email"
               type="email"
-              // Add value and onChange handlers when implementing
+              value={profileData.email}
+              onChange={handleProfileChange}
             />
             <TextField
               fullWidth
-              label="Phone Number"
+              label="Mobile Number"
               margin="normal"
-              name="phone"
-              // Add value and onChange handlers when implementing
+              name="mobileNumber"
+              value={profileData.mobileNumber}
+              onChange={handleProfileChange}
+            />
+            <TextField
+              fullWidth
+              label="ID Number"
+              margin="normal"
+              name="idNumber"
+              value={profileData.idNumber}
+              onChange={handleProfileChange}
             />
             <TextField
               fullWidth
               label="Department"
               margin="normal"
               name="department"
-              // Add value and onChange handlers when implementing
+              value={profileData.department}
+              onChange={handleProfileChange}
+            />
+            <TextField
+              fullWidth
+              label="Role"
+              margin="normal"
+              name="role"
+              value={profileData.role}
+              onChange={handleProfileChange}
+              disabled
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenProfileDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={() => setOpenProfileDialog(false)}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
           <Button 
             variant="contained"
+            onClick={handleProfileSubmit}
+            disabled={isLoading}
             sx={{
               background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
               '&:hover': {
                 background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
               },
             }}
-            // Add onClick handler when implementing
           >
-            Update Profile
-      </Button>
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Update Profile'
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Password Reset Dialog */}
+      <Dialog 
+        open={openPasswordDialog} 
+        onClose={() => setOpenPasswordDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Reset Password</DialogTitle>
+        <DialogContent>
+          {passwordError && (
+            <Typography color="error" sx={{ mb: 2 }}>
+              {passwordError}
+            </Typography>
+          )}
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Username"
+              margin="normal"
+              name="username"
+              value={passwordData.username}
+              disabled
+            />
+            <TextField
+              fullWidth
+              label="New Password"
+              margin="normal"
+              name="newPassword"
+              type="password"
+              value={passwordData.newPassword}
+              onChange={handlePasswordChange}
+              disabled={isPasswordLoading}
+            />
+            <TextField
+              fullWidth
+              label="Confirm New Password"
+              margin="normal"
+              name="confirmPassword"
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={handlePasswordChange}
+              disabled={isPasswordLoading}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setOpenPasswordDialog(false)}
+            disabled={isPasswordLoading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="contained"
+            onClick={handlePasswordSubmit}
+            disabled={isPasswordLoading}
+            sx={{
+              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+              },
+            }}
+          >
+            {isPasswordLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Reset Password'
+            )}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
