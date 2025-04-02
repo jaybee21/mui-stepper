@@ -34,6 +34,7 @@ const steps = [
 const MainContent: FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set<number>());
+  const [canProceed, setCanProceed] = useState(false);
 
   const isStepSkipped = (step: number) => {
     return skipped.has(step);
@@ -48,6 +49,12 @@ const MainContent: FC = () => {
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSkipped(newSkipped);
+    // Reset canProceed for the next step
+    setCanProceed(false);
+  };
+
+  const handleStepOneNext = () => {
+    setCanProceed(true);
   };
 
   const handleBack = () => {
@@ -61,19 +68,19 @@ const MainContent: FC = () => {
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <StepOne />; // Render StepOne component
+        return <StepOne onNext={handleStepOneNext} />;
       case 1:
-        return <StepTwo />; // Render StepTwo component
+        return <StepTwo />;
       case 2:
-        return <StepThree />; // Render StepThree component
+        return <StepThree />;
       case 3:
-        return <StepFive />; // Render StepFive component
+        return <StepFive />;
       case 4:
-        return <StepSix />; // Render StepSix component
+        return <StepSix />;
       case 5:
-        return <StepSeven />; // Render StepSeven component
+        return <StepSeven />;
       case 6:
-        return <StepEight />; // Render StepEight component
+        return <StepEight />;
       default:
         return 'Unknown step';
     }
@@ -175,39 +182,45 @@ const MainContent: FC = () => {
           ) : (
             <>
               <Box sx={{ mt: 4, mb: 2 }}>
-                {getStepContent(activeStep)} {/* Render step content */}
+                {activeStep === 0 ? (
+                  <StepOne onNext={handleNext} />
+                ) : (
+                  getStepContent(activeStep)
+                )}
               </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button
-                  variant="outlined"
-                  disabled={activeStep === 0}
-                  onClick={handleBack}
-                  sx={{ 
-                    mr: 1,
-                    color: '#13A215',
-                    borderColor: '#13A215',
-                    '&:hover': {
-                      borderColor: '#0B8A0D',
-                      backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                    },
-                  }}
-                >
-                  Back
-                </Button>
-                <Box sx={{ flex: '1 1 auto' }} />
-                <Button 
-                  variant="contained" 
-                  onClick={handleNext}
-                  sx={{
-                    background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-                    '&:hover': {
-                      background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-                    },
-                  }}
-                >
-                  {activeStep === steps.length - 1 ? 'Submit Application' : 'Next'}
-                </Button>
-              </Box>
+              {activeStep !== 0 && (
+                <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    sx={{ 
+                      mr: 1,
+                      color: '#13A215',
+                      borderColor: '#13A215',
+                      '&:hover': {
+                        borderColor: '#0B8A0D',
+                        backgroundColor: 'rgba(19, 162, 21, 0.04)',
+                      },
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Box sx={{ flex: '1 1 auto' }} />
+                  <Button 
+                    variant="contained" 
+                    onClick={handleNext}
+                    sx={{
+                      background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+                      },
+                    }}
+                  >
+                    {activeStep === steps.length - 1 ? 'Submit Application' : 'Next'}
+                  </Button>
+                </Box>
+              )}
             </>
           )}
         </Paper>
