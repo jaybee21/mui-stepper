@@ -2,332 +2,441 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
+  TextField,
+  Button,
   FormControl,
   InputLabel,
   Select,
+  SelectChangeEvent,
   MenuItem,
-  TextField,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Checkbox,
-  FormGroup,
+  Grid,
+  Snackbar,
+  CircularProgress,
 } from '@mui/material';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-const StepTwo: React.FC = () => {
-  const [title, setTitle] = useState('');
-  const [firstNames, setFirstNames] = useState('');
-  const [surname, setSurname] = useState('');
-  const [maritalStatus, setMaritalStatus] = useState('');
-  const [maidenName, setMaidenName] = useState('');
-  const [nationalId, setNationalId] = useState('');
-  const [passportNumber, setPassportNumber] = useState('');
-  const [dob, setDob] = useState('');
-  const [placeOfBirth, setPlaceOfBirth] = useState('');
-  const [gender, setGender] = useState('');
-  const [citizenship, setCitizenship] = useState('');
-  const [nationality, setNationality] = useState('');
-  const [residentialAddress, setResidentialAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('');
-  const [postalAddress, setPostalAddress] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [hasDisability, setHasDisability] = useState('no');
-  const [disabilities, setDisabilities] = useState({
-    blindness: false,
-    cerebralPalsy: false,
-    deafness: false,
-    speechImpairment: false,
-    other: false,
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+interface StepTwoProps {
+  onNext: () => void;
+}
+
+const StepTwo: React.FC<StepTwoProps> = ({ onNext }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    firstNames: '',
+    surname: '',
+    maritalStatus: '',
+    maidenName: '', // optional
+    nationalId: '',
+    passportNumber: '',
+    dateOfBirth: null as Date | null,
+    placeOfBirth: '',
+    gender: '',
+    citizenship: '',
+    nationality: '',
+    residentialAddress: '',
+    postalAddress: '',
+    city: '',
+    country: '',
+    phone: '',
+    email: '',
   });
-  const [otherDescription, setOtherDescription] = useState('');
 
-  const handleDisabilityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setHasDisability(event.target.value);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    const requiredFields = [
+      'title', 'firstNames', 'surname', 'maritalStatus', 'nationalId',
+      'passportNumber', 'dateOfBirth', 'placeOfBirth', 'gender', 'citizenship',
+      'nationality', 'residentialAddress', 'postalAddress', 'city', 'country',
+      'phone', 'email'
+    ];
+
+    requiredFields.forEach(field => {
+      if (!formData[field as keyof typeof formData]) {
+        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')} is required`;
+      }
+    });
+
+    // Email validation
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone validation
+    if (formData.phone && !/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDisabilities({
-      ...disabilities,
-      [event.target.name]: event.target.checked,
-    });
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      setSnackbarMessage('Please fill in all required fields correctly');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    const referenceNumber = sessionStorage.getItem('applicationReference');
+    if (!referenceNumber) {
+      setSnackbarMessage('Application reference not found. Please start from step one.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/personal-details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.toISOString().split('T')[0] : null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save personal details');
+      }
+
+      setSnackbarMessage('Personal details saved successfully!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      
+      // Wait for snackbar to show before proceeding
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+    } catch (error) {
+      setSnackbarMessage('Failed to save personal details. Please try again.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (field: keyof typeof formData) => (
+    event: React.ChangeEvent<HTMLInputElement | { value: unknown }> | SelectChangeEvent<string>
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+    // Clear error when field is edited
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
+
+  const handleDateChange = (date: Date | null) => {
+    setFormData(prev => ({
+      ...prev,
+      dateOfBirth: date
+    }));
+    if (errors.dateOfBirth) {
+      setErrors(prev => ({
+        ...prev,
+        dateOfBirth: ''
+      }));
+    }
   };
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Personal Information
+      <Typography variant="h6" gutterBottom>
+        Personal Details
       </Typography>
 
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel></InputLabel>
-        <Select
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          displayEmpty
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth error={!!errors.title}>
+            <InputLabel>Title</InputLabel>
+            <Select
+              value={formData.title}
+              onChange={handleChange('title')}
+              label="Title"
+            >
+              <MenuItem value="Mr">Mr</MenuItem>
+              <MenuItem value="Mrs">Mrs</MenuItem>
+              <MenuItem value="Miss">Miss</MenuItem>
+              <MenuItem value="Dr">Dr</MenuItem>
+              <MenuItem value="Prof">Prof</MenuItem>
+            </Select>
+            {errors.title && (
+              <Typography color="error" variant="caption">
+                {errors.title}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="First Names"
+            value={formData.firstNames}
+            onChange={handleChange('firstNames')}
+            error={!!errors.firstNames}
+            helperText={errors.firstNames}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Surname"
+            value={formData.surname}
+            onChange={handleChange('surname')}
+            error={!!errors.surname}
+            helperText={errors.surname}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth error={!!errors.maritalStatus}>
+            <InputLabel>Marital Status</InputLabel>
+            <Select
+              value={formData.maritalStatus}
+              onChange={handleChange('maritalStatus')}
+              label="Marital Status"
+            >
+              <MenuItem value="Single">Single</MenuItem>
+              <MenuItem value="Married">Married</MenuItem>
+              <MenuItem value="Divorced">Divorced</MenuItem>
+              <MenuItem value="Widowed">Widowed</MenuItem>
+            </Select>
+            {errors.maritalStatus && (
+              <Typography color="error" variant="caption">
+                {errors.maritalStatus}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Maiden Name (Optional)"
+            value={formData.maidenName}
+            onChange={handleChange('maidenName')}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="National ID"
+            value={formData.nationalId}
+            onChange={handleChange('nationalId')}
+            error={!!errors.nationalId}
+            helperText={errors.nationalId}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Passport Number"
+            value={formData.passportNumber}
+            onChange={handleChange('passportNumber')}
+            error={!!errors.passportNumber}
+            helperText={errors.passportNumber}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <DatePicker
+              label="Date of Birth"
+              value={formData.dateOfBirth}
+              onChange={handleDateChange}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  error: !!errors.dateOfBirth,
+                  helperText: errors.dateOfBirth
+                }
+              }}
+            />
+          </LocalizationProvider>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Place of Birth"
+            value={formData.placeOfBirth}
+            onChange={handleChange('placeOfBirth')}
+            error={!!errors.placeOfBirth}
+            helperText={errors.placeOfBirth}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth error={!!errors.gender}>
+            <InputLabel>Gender</InputLabel>
+            <Select
+              value={formData.gender}
+              onChange={handleChange('gender')}
+              label="Gender"
+            >
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </Select>
+            {errors.gender && (
+              <Typography color="error" variant="caption">
+                {errors.gender}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Citizenship"
+            value={formData.citizenship}
+            onChange={handleChange('citizenship')}
+            error={!!errors.citizenship}
+            helperText={errors.citizenship}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Nationality"
+            value={formData.nationality}
+            onChange={handleChange('nationality')}
+            error={!!errors.nationality}
+            helperText={errors.nationality}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Residential Address"
+            value={formData.residentialAddress}
+            onChange={handleChange('residentialAddress')}
+            error={!!errors.residentialAddress}
+            helperText={errors.residentialAddress}
+            multiline
+            rows={2}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Postal Address"
+            value={formData.postalAddress}
+            onChange={handleChange('postalAddress')}
+            error={!!errors.postalAddress}
+            helperText={errors.postalAddress}
+            multiline
+            rows={2}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="City"
+            value={formData.city}
+            onChange={handleChange('city')}
+            error={!!errors.city}
+            helperText={errors.city}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Country"
+            value={formData.country}
+            onChange={handleChange('country')}
+            error={!!errors.country}
+            helperText={errors.country}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Phone"
+            value={formData.phone}
+            onChange={handleChange('phone')}
+            error={!!errors.phone}
+            helperText={errors.phone}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Email"
+            value={formData.email}
+            onChange={handleChange('email')}
+            error={!!errors.email}
+            helperText={errors.email}
+            type="email"
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          sx={{
+            background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+            },
+          }}
         >
-          <MenuItem value="" disabled>
-            <em>Select Title</em>
-          </MenuItem>
-          <MenuItem value="Mr">Mr</MenuItem>
-          <MenuItem value="Mrs">Mrs</MenuItem>
-          <MenuItem value="Ms">Ms</MenuItem>
-          <MenuItem value="Dr">Dr</MenuItem>
-          <MenuItem value="Prof">Prof</MenuItem>
-        </Select>
-      </FormControl>
+          {isLoading ? <CircularProgress size={24} /> : 'Next'}
+        </Button>
+      </Box>
 
-      <TextField
-        fullWidth
-        label="First Names"
-        variant="outlined"
-        value={firstNames}
-        onChange={(e) => setFirstNames(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Surname"
-        variant="outlined"
-        value={surname}
-        onChange={(e) => setSurname(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel></InputLabel>
-        <Select
-          value={maritalStatus}
-          onChange={(e) => setMaritalStatus(e.target.value)}
-          displayEmpty
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
         >
-          <MenuItem value="" disabled>
-            <em>Select Marital Status</em>
-          </MenuItem>
-          <MenuItem value="Single">Single</MenuItem>
-          <MenuItem value="Married">Married</MenuItem>
-          <MenuItem value="Divorced">Divorced</MenuItem>
-          <MenuItem value="Widowed">Widowed</MenuItem>
-        </Select>
-      </FormControl>
-
-      <TextField
-        fullWidth
-        label="Maiden Name or Prior Names (if applicable)"
-        variant="outlined"
-        value={maidenName}
-        onChange={(e) => setMaidenName(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="National I.D"
-        variant="outlined"
-        value={nationalId}
-        onChange={(e) => setNationalId(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Passport Number"
-        variant="outlined"
-        value={passportNumber}
-        onChange={(e) => setPassportNumber(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Date of Birth (DD/MM/YYYY)"
-        variant="outlined"
-        type="text"
-        value={dob}
-        onChange={(e) => setDob(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Place of Birth"
-        variant="outlined"
-        value={placeOfBirth}
-        onChange={(e) => setPlaceOfBirth(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel></InputLabel>
-        <Select
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-          displayEmpty
-        >
-          <MenuItem value="" disabled>
-            <em>Select Gender</em>
-          </MenuItem>
-          <MenuItem value="Male">Male</MenuItem>
-          <MenuItem value="Female">Female</MenuItem>
-          <MenuItem value="Other">Other</MenuItem>
-        </Select>
-      </FormControl>
-
-      <TextField
-        fullWidth
-        label="Citizenship (Specify Country)"
-        variant="outlined"
-        value={citizenship}
-        onChange={(e) => setCitizenship(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Nationality (Specify Country)"
-        variant="outlined"
-        value={nationality}
-        onChange={(e) => setNationality(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Residential Address"
-        variant="outlined"
-        value={residentialAddress}
-        onChange={(e) => setResidentialAddress(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="City"
-        variant="outlined"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Country"
-        variant="outlined"
-        value={country}
-        onChange={(e) => setCountry(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Postal Address (if Different from Residential Address)"
-        variant="outlined"
-        value={postalAddress}
-        onChange={(e) => setPostalAddress(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="Phone"
-        variant="outlined"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <TextField
-        fullWidth
-        label="E-mail"
-        variant="outlined"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        Do you have any disabilities?
-      </Typography>
-      <FormControl component="fieldset">
-        <RadioGroup row value={hasDisability} onChange={handleDisabilityChange}>
-          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-          <FormControlLabel value="no" control={<Radio />} label="No" />
-        </RadioGroup>
-      </FormControl>
-
-      {hasDisability === 'yes' && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            Please specify your disabilities:
-          </Typography>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={disabilities.blindness}
-                  onChange={handleCheckboxChange}
-                  name="blindness"
-                />
-              }
-              label="Blindness"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={disabilities.cerebralPalsy}
-                  onChange={handleCheckboxChange}
-                  name="cerebralPalsy"
-                />
-              }
-              label="Cerebral Palsy"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={disabilities.deafness}
-                  onChange={handleCheckboxChange}
-                  name="deafness"
-                />
-              }
-              label="Deafness"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={disabilities.speechImpairment}
-                  onChange={handleCheckboxChange}
-                  name="speechImpairment"
-                />
-              }
-              label="Speech Impairment"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={disabilities.other}
-                  onChange={handleCheckboxChange}
-                  name="other"
-                />
-              }
-              label="Other"
-            />
-          </FormGroup>
-
-          {disabilities.other && (
-            <TextField
-              fullWidth
-              label="Please specify"
-              variant="outlined"
-              value={otherDescription}
-              onChange={(e) => setOtherDescription(e.target.value)}
-              sx={{ mb: 2, mt: 2 }}
-            />
-          )}
-        </Box>
-      )}
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

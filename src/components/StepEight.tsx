@@ -7,7 +7,11 @@ import {
   Checkbox,
 } from '@mui/material';
 
-const StepEight: React.FC = () => {
+interface StepEightProps {
+  onNext: () => void;
+}
+
+const StepEight: React.FC<StepEightProps> = ({ onNext }) => {
   const [isAgreed, setIsAgreed] = useState(false);
 
   const handleAgreementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +44,7 @@ const StepEight: React.FC = () => {
           if (isAgreed) {
             // Handle submission logic here
             alert("Application submitted successfully!");
+            onNext();
           } else {
             alert("You must agree to the terms and conditions before submitting.");
           }

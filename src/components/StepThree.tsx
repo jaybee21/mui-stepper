@@ -5,7 +5,11 @@ import {
   TextField,
 } from '@mui/material';
 
-const StepThree: React.FC = () => {
+interface StepThreeProps {
+  onNext: () => void;
+}
+
+const StepThree: React.FC<StepThreeProps> = ({ onNext }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [relationship, setRelationship] = useState('');

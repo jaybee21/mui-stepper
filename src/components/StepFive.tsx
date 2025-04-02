@@ -34,7 +34,11 @@ const subjectsList = [
 
 const gradesList = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-const StepFive: React.FC = () => {
+interface StepFiveProps {
+  onNext: () => void;
+}
+
+const StepFive: React.FC<StepFiveProps> = ({ onNext }) => {
   const [ordinaryLevel, setOrdinaryLevel] = useState(false);
   const [otherQualification, setOtherQualification] = useState(false);
   const [otherDescription, setOtherDescription] = useState('');

@@ -17,7 +17,11 @@ interface Experience {
   duties: string;
 }
 
-const StepSix: React.FC = () => {
+interface StepSixProps {
+  onNext: () => void;
+}
+
+const StepSix: React.FC<StepSixProps> = ({ onNext }) => {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [organization, setOrganization] = useState('');
   const [position, setPosition] = useState('');

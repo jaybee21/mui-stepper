@@ -70,17 +70,17 @@ const MainContent: FC = () => {
       case 0:
         return <StepOne onNext={handleStepOneNext} />;
       case 1:
-        return <StepTwo />;
+        return <StepTwo onNext={handleNext} />;
       case 2:
-        return <StepThree />;
+        return <StepThree onNext={handleNext} />;
       case 3:
-        return <StepFive />;
+        return <StepFive onNext={handleNext} />;
       case 4:
-        return <StepSix />;
+        return <StepSix onNext={handleNext} />;
       case 5:
-        return <StepSeven />;
+        return <StepSeven onNext={handleNext} />;
       case 6:
-        return <StepEight />;
+        return <StepEight onNext={handleNext} />;
       default:
         return 'Unknown step';
     }

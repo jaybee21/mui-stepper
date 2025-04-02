@@ -9,7 +9,11 @@ import {
   Checkbox,
 } from '@mui/material';
 
-const StepSeven: React.FC = () => {
+interface StepSevenProps {
+  onNext: () => void;
+}
+
+const StepSeven: React.FC<StepSevenProps> = ({ onNext }) => {
   const [academicCertificates, setAcademicCertificates] = useState<File | null>(null);
   const [professionalCertificates, setProfessionalCertificates] = useState<File | null>(null);
   const [proposal, setProposal] = useState<File | null>(null);
