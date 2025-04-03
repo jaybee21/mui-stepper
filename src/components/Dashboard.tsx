@@ -939,7 +939,7 @@ const Dashboard: FC = () => {
             disabled={isPasswordLoading}
           >
             Cancel
-          </Button>
+      </Button>
           <Button 
             variant="contained"
             onClick={handlePasswordSubmit}
@@ -956,7 +956,7 @@ const Dashboard: FC = () => {
             ) : (
               'Reset Password'
             )}
-          </Button>
+      </Button>
         </DialogActions>
       </Dialog>
     </Box>
