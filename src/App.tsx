@@ -11,20 +11,22 @@ import {
   Paper,
 } from '@mui/material';
 import Header from './components/Header';
-import StepOne from './components/StepOne'; // Import StepOne
-import StepTwo from './components/StepTwo'; // Import StepTwo
-import StepThree from './components/StepThree'; // Import StepThree
-import StepFive from './components/StepFive'; // Import StepFive
-import StepSix from './components/StepSix'; // Import StepSix
-import StepSeven from './components/StepSeven'; // Import StepSeven
-import StepEight from './components/StepEight'; // Import StepEight
+import StepOne from './components/StepOne'; 
+import StepTwo from './components/StepTwo';
+import StepThree from './components/StepThree'; 
+import StepFour from './components/StepFour';
+import StepFive from './components/StepFive'; 
+import StepSix from './components/StepSix'; 
+import StepSeven from './components/StepSeven'; 
+import StepEight from './components/StepEight'; 
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 
 const steps = [
   'Program Selection',
   'Personal Information',
-  'Next of Kin Information', // This step is now part of Step Two
+  'Next of Kin Information', 
+  'Disability',
   'Education',
   'Experience',
   'Upload Docs',
@@ -40,14 +42,7 @@ const MainContent: FC = () => {
   };
 
   const handleNext = () => {
-    let newSkipped = skipped;
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values());
-      newSkipped.delete(activeStep);
-    }
-
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped(newSkipped);
   };
 
   const handleBack = () => {
@@ -58,6 +53,11 @@ const MainContent: FC = () => {
     setActiveStep(0);
   };
 
+  const currentStep = activeStep + 1;
+  
+  // Hide navigation buttons for Steps 1, 2, 3, and 4
+  const showNavigationButtons = currentStep > 4;
+
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
@@ -66,13 +66,15 @@ const MainContent: FC = () => {
         return <StepTwo onNext={handleNext} onBack={handleBack} />;
       case 2:
         return <StepThree onNext={handleNext} onBack={handleBack} />;
-      case 3:
-        return <StepFive onNext={handleNext} />;
+        case 3:
+          return <StepFour onNext={handleNext} onBack={handleBack} />;  
       case 4:
-        return <StepSix onNext={handleNext} />;
+        return <StepFive onNext={handleNext} />;
       case 5:
-        return <StepSeven onNext={handleNext} />;
+        return <StepSix onNext={handleNext} />;
       case 6:
+        return <StepSeven onNext={handleNext} />;
+      case 7:
         return <StepEight onNext={handleNext} />;
       default:
         return 'Unknown step';
@@ -124,6 +126,15 @@ const MainContent: FC = () => {
           <Stepper 
             activeStep={activeStep}
             sx={{
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              '& .MuiStepLabel-label': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                whiteSpace: 'nowrap',
+              },
+              '& .MuiStepper-root': {
+                padding: '24px 0',
+              },
               '@media (max-width: 600px)': {
                 flexDirection: 'column',
                 alignItems: 'flex-start',
@@ -177,36 +188,19 @@ const MainContent: FC = () => {
               <Box sx={{ mt: 4, mb: 2 }}>
                 {getStepContent(activeStep)}
               </Box>
-              {/* Only show navigation buttons for steps after StepThree (index 2) */}
-              {activeStep > 2 && (
+              {showNavigationButtons && (
                 <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                   <Button
-                    variant="outlined"
+                    color="inherit"
+                    disabled={activeStep === 0}
                     onClick={handleBack}
-                    sx={{ 
-                      mr: 1,
-                      color: '#13A215',
-                      borderColor: '#13A215',
-                      '&:hover': {
-                        borderColor: '#0B8A0D',
-                        backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                      },
-                    }}
+                    sx={{ mr: 1 }}
                   >
                     Back
                   </Button>
                   <Box sx={{ flex: '1 1 auto' }} />
-                  <Button 
-                    variant="contained"
-                    onClick={handleNext}
-                    sx={{
-                      background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-                      },
-                    }}
-                  >
-                    {activeStep === steps.length - 1 ? 'Submit Application' : 'Next'}
+                  <Button onClick={handleNext}>
+                    {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
                   </Button>
                 </Box>
               )}

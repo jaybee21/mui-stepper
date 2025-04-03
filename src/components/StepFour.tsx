@@ -9,9 +9,22 @@ import {
   Checkbox,
   FormGroup,
   TextField,
+  Button,
+  Snackbar,
+  CircularProgress,
 } from '@mui/material';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
-const StepFour: React.FC = () => {
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+interface StepFourProps {
+  onNext: () => void;
+  onBack: () => void;
+}
+
+const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
   const [hasDisability, setHasDisability] = useState('no');
   const [disabilities, setDisabilities] = useState({
     blindness: false,
@@ -22,6 +35,10 @@ const StepFour: React.FC = () => {
   });
   const [otherDescription, setOtherDescription] = useState('');
   const [extraAdaptations, setExtraAdaptations] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
   const handleDisabilityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setHasDisability(event.target.value);
@@ -34,10 +51,62 @@ const StepFour: React.FC = () => {
     });
   };
 
+  const handleSubmit = async () => {
+    const referenceNumber = sessionStorage.getItem('applicationReference');
+    if (!referenceNumber) {
+      setSnackbarMessage('Application reference not found. Please start from step one.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Prepare disability data according to API requirements
+      const disabilityData = {
+        hasDisability: hasDisability === 'yes' ? "Yes" : "No",
+        blindness: disabilities.blindness,
+        cerebralPalsy: disabilities.cerebralPalsy,
+        deafness: disabilities.deafness,
+        speechImpairment: disabilities.speechImpairment,
+        other: disabilities.other ? otherDescription : "",
+        extraAdaptations: extraAdaptations
+      };
+
+      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/disabilities`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(disabilityData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save disability information');
+      }
+
+      setSnackbarMessage('Disability information saved successfully!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      
+      // Wait for snackbar to show before proceeding
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+    } catch (error) {
+      setSnackbarMessage('Failed to save disability information. Please try again.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        NOTE: This is your Reference Number: APL254002. Keep it safe. You will be required to use it in the next session if you do not complete your application now.
+        NOTE: This is your Reference Number: {sessionStorage.getItem('applicationReference')}. Keep it safe. You will be required to use it in the next session if you do not complete your application now.
       </Typography>
 
       <Typography variant="body1" sx={{ mb: 2 }}>
@@ -132,6 +201,51 @@ const StepFour: React.FC = () => {
           />
         </Box>
       )}
+
+      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+        <Button
+          variant="outlined"
+          onClick={onBack}
+          sx={{ 
+            color: '#13A215',
+            borderColor: '#13A215',
+            '&:hover': {
+              borderColor: '#0B8A0D',
+              backgroundColor: 'rgba(19, 162, 21, 0.04)',
+            },
+          }}
+        >
+          Back
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          sx={{
+            background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+            },
+          }}
+        >
+          {isLoading ? <CircularProgress size={24} /> : 'Next'}
+        </Button>
+      </Box>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
