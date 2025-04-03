@@ -3,69 +3,238 @@ import {
   Box,
   Typography,
   TextField,
+  Button,
+  Grid,
+  Snackbar,
+  CircularProgress,
 } from '@mui/material';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 interface StepThreeProps {
   onNext: () => void;
+  onBack: () => void;
 }
 
-const StepThree: React.FC<StepThreeProps> = ({ onNext }) => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [relationship, setRelationship] = useState('');
-  const [contactAddress, setContactAddress] = useState('');
-  const [contactTel, setContactTel] = useState('');
+const StepThree: React.FC<StepThreeProps> = ({ onNext, onBack }) => {
+  // Get stored application data
+  const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+  const nextOfKin = storedData.nextOfKin?.[0] || {};
+
+  const [formData, setFormData] = useState({
+    firstName: nextOfKin.first_name || '',
+    lastName: nextOfKin.last_name || '',
+    relationship: nextOfKin.relationship || '',
+    contactAddress: nextOfKin.contact_address || '',
+    contactTel: nextOfKin.contact_tel || '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    const requiredFields = ['firstName', 'lastName', 'relationship', 'contactAddress', 'contactTel'];
+
+    requiredFields.forEach(field => {
+      if (!formData[field as keyof typeof formData]) {
+        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')} is required`;
+      }
+    });
+
+    // Phone validation
+    if (formData.contactTel && !/^\+?[\d\s-]{10,}$/.test(formData.contactTel)) {
+      newErrors.contactTel = 'Please enter a valid phone number';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      setSnackbarMessage('Please fill in all required fields correctly');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    const referenceNumber = sessionStorage.getItem('applicationReference');
+    if (!referenceNumber) {
+      setSnackbarMessage('Application reference not found. Please start from step one.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/next-of-kin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          relationship: formData.relationship,
+          contactAddress: formData.contactAddress,
+          contactTel: formData.contactTel,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save next of kin details');
+      }
+
+      setSnackbarMessage('Next of kin details saved successfully!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      
+      // Wait for snackbar to show before proceeding
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+    } catch (error) {
+      setSnackbarMessage('Failed to save next of kin details. Please try again.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (field: keyof typeof formData) => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+    // Clear error when field is edited
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        NOTE: This is your Reference Number:#######. Keep it safe. You will be required to use it in the next session if you do not complete your application now.
+      <Typography variant="h6" gutterBottom>
+        Next of Kin Information
       </Typography>
 
-      <TextField
-        fullWidth
-        label="First Name"
-        variant="outlined"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
-        sx={{ mb: 2 }}
-      />
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="First Name"
+            value={formData.firstName}
+            onChange={handleChange('firstName')}
+            error={!!errors.firstName}
+            helperText={errors.firstName}
+          />
+        </Grid>
 
-      <TextField
-        fullWidth
-        label="Last Name"
-        variant="outlined"
-        value={lastName}
-        onChange={(e) => setLastName(e.target.value)}
-        sx={{ mb: 2 }}
-      />
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Last Name"
+            value={formData.lastName}
+            onChange={handleChange('lastName')}
+            error={!!errors.lastName}
+            helperText={errors.lastName}
+          />
+        </Grid>
 
-      <TextField
-        fullWidth
-        label="Relationship to Applicant"
-        variant="outlined"
-        value={relationship}
-        onChange={(e) => setRelationship(e.target.value)}
-        sx={{ mb: 2 }}
-      />
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Relationship to Applicant"
+            value={formData.relationship}
+            onChange={handleChange('relationship')}
+            error={!!errors.relationship}
+            helperText={errors.relationship}
+          />
+        </Grid>
 
-      <TextField
-        fullWidth
-        label="Contact Address of Next of Kin"
-        variant="outlined"
-        value={contactAddress}
-        onChange={(e) => setContactAddress(e.target.value)}
-        sx={{ mb: 2 }}
-      />
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Contact Address"
+            value={formData.contactAddress}
+            onChange={handleChange('contactAddress')}
+            error={!!errors.contactAddress}
+            helperText={errors.contactAddress}
+            multiline
+            rows={2}
+          />
+        </Grid>
 
-      <TextField
-        fullWidth
-        label="Contact Tel"
-        variant="outlined"
-        value={contactTel}
-        onChange={(e) => setContactTel(e.target.value)}
-        sx={{ mb: 2 }}
-      />
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Contact Tel"
+            value={formData.contactTel}
+            onChange={handleChange('contactTel')}
+            error={!!errors.contactTel}
+            helperText={errors.contactTel}
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+        <Button
+          variant="outlined"
+          onClick={onBack}
+          sx={{ 
+            color: '#13A215',
+            borderColor: '#13A215',
+            '&:hover': {
+              borderColor: '#0B8A0D',
+              backgroundColor: 'rgba(19, 162, 21, 0.04)',
+            },
+          }}
+        >
+          Back
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          sx={{
+            background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+            },
+          }}
+        >
+          {isLoading ? <CircularProgress size={24} /> : 'Next'}
+        </Button>
+      </Box>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

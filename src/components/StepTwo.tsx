@@ -24,28 +24,33 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props,
 
 interface StepTwoProps {
   onNext: () => void;
+  onBack: () => void;
 }
 
-const StepTwo: React.FC<StepTwoProps> = ({ onNext }) => {
+const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
+  // Get stored application data
+  const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+  const personalDetails = storedData.personalDetails || {};
+  
   const [formData, setFormData] = useState({
-    title: '',
-    firstNames: '',
-    surname: '',
-    maritalStatus: '',
-    maidenName: '', // optional
-    nationalId: '',
-    passportNumber: '',
-    dateOfBirth: null as Date | null,
-    placeOfBirth: '',
-    gender: '',
-    citizenship: '',
-    nationality: '',
-    residentialAddress: '',
-    postalAddress: '',
-    city: '',
-    country: '',
-    phone: '',
-    email: '',
+    title: personalDetails.title || '',
+    firstNames: personalDetails.first_names || '',
+    surname: personalDetails.surname || '',
+    maritalStatus: personalDetails.marital_status || '',
+    maidenName: personalDetails.maiden_name || '', // optional
+    nationalId: personalDetails.national_id || '',
+    passportNumber: personalDetails.passport_number || '',
+    dateOfBirth: personalDetails.date_of_birth ? new Date(personalDetails.date_of_birth) : null,
+    placeOfBirth: personalDetails.place_of_birth || '',
+    gender: personalDetails.gender || '',
+    citizenship: personalDetails.citizenship || '',
+    nationality: personalDetails.nationality || '',
+    residentialAddress: personalDetails.residential_address || '',
+    postalAddress: personalDetails.postal_address || '',
+    city: personalDetails.city || '',
+    country: personalDetails.country || '',
+    phone: personalDetails.phone || '',
+    email: personalDetails.email || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,7 +63,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext }) => {
     const newErrors: Record<string, string> = {};
     const requiredFields = [
       'title', 'firstNames', 'surname', 'maritalStatus', 'nationalId',
-      'passportNumber', 'dateOfBirth', 'placeOfBirth', 'gender', 'citizenship',
+      'dateOfBirth', 'placeOfBirth', 'gender', 'citizenship',
       'nationality', 'residentialAddress', 'postalAddress', 'city', 'country',
       'phone', 'email'
     ];
@@ -407,7 +412,21 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext }) => {
         </Grid>
       </Grid>
 
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+        <Button
+          variant="outlined"
+          onClick={onBack}
+          sx={{ 
+            color: '#13A215',
+            borderColor: '#13A215',
+            '&:hover': {
+              borderColor: '#0B8A0D',
+              backgroundColor: 'rgba(19, 162, 21, 0.04)',
+            },
+          }}
+        >
+          Back
+        </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}

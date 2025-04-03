@@ -26,6 +26,12 @@ interface NewApplicationResponse {
   referenceNumber: string;
 }
 
+interface ApplicationData {
+  referenceNumber: string;
+  // Add other properties based on your API response
+  [key: string]: any;
+}
+
 interface StepOneProps {
   onNext: () => void;
 }
@@ -53,6 +59,9 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isResumingApplication, setIsResumingApplication] = useState(false);
+
+  // Add new state for application data
+  const [applicationData, setApplicationData] = useState<ApplicationData | null>(null);
 
   const validateNewApplication = () => {
     if (!year || !semester || !program || !campus || !session || !source || !registered || !programType) {
@@ -147,10 +156,15 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
       const data = await response.json();
 
       if (response.status === 200) {
-        // Store reference number in session storage
+        // Store both reference number and complete application data
         sessionStorage.setItem('applicationReference', referenceNumber);
+        sessionStorage.setItem('applicationData', JSON.stringify(data));
+        
+        // Also set in state for immediate use if needed
+        setApplicationData(data);
         setSuccess('Application found! Redirecting to continue your application...');
         setOpenSnackbar(true);
+        setIsSubmitted(true);
         
         // Navigate to next step after showing success message
         setTimeout(() => {

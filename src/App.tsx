@@ -34,7 +34,6 @@ const steps = [
 const MainContent: FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set<number>());
-  const [canProceed, setCanProceed] = useState(false);
 
   const isStepSkipped = (step: number) => {
     return skipped.has(step);
@@ -49,12 +48,6 @@ const MainContent: FC = () => {
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSkipped(newSkipped);
-    // Reset canProceed for the next step
-    setCanProceed(false);
-  };
-
-  const handleStepOneNext = () => {
-    setCanProceed(true);
   };
 
   const handleBack = () => {
@@ -68,11 +61,11 @@ const MainContent: FC = () => {
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <StepOne onNext={handleStepOneNext} />;
+        return <StepOne onNext={handleNext} />;
       case 1:
-        return <StepTwo onNext={handleNext} />;
+        return <StepTwo onNext={handleNext} onBack={handleBack} />;
       case 2:
-        return <StepThree onNext={handleNext} />;
+        return <StepThree onNext={handleNext} onBack={handleBack} />;
       case 3:
         return <StepFive onNext={handleNext} />;
       case 4:
@@ -182,17 +175,13 @@ const MainContent: FC = () => {
           ) : (
             <>
               <Box sx={{ mt: 4, mb: 2 }}>
-                {activeStep === 0 ? (
-                  <StepOne onNext={handleNext} />
-                ) : (
-                  getStepContent(activeStep)
-                )}
+                {getStepContent(activeStep)}
               </Box>
-              {activeStep !== 0 && (
+              {/* Only show navigation buttons for steps after StepThree (index 2) */}
+              {activeStep > 2 && (
                 <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                   <Button
                     variant="outlined"
-                    disabled={activeStep === 0}
                     onClick={handleBack}
                     sx={{ 
                       mr: 1,
@@ -208,7 +197,7 @@ const MainContent: FC = () => {
                   </Button>
                   <Box sx={{ flex: '1 1 auto' }} />
                   <Button 
-                    variant="contained" 
+                    variant="contained"
                     onClick={handleNext}
                     sx={{
                       background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
