@@ -55,21 +55,21 @@ const MainContent: FC = () => {
 
   const currentStep = activeStep + 1;
   
-  // Hide navigation buttons for Steps 1, 2, 3, and 4
-  const showNavigationButtons = currentStep > 4;
+  // Hide navigation buttons for Steps 1, 2, 3, 4, and 5
+  const showNavigationButtons = currentStep > 5;
 
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
         return <StepOne onNext={handleNext} />;
       case 1:
-        return <StepTwo onNext={handleNext} onBack={handleBack} />;
+        return <StepTwo onNext={handleNext} onBack={() => setActiveStep(0)} />;
       case 2:
-        return <StepThree onNext={handleNext} onBack={handleBack} />;
+        return <StepThree onNext={handleNext} onBack={() => setActiveStep(1)} />;
         case 3:
-          return <StepFour onNext={handleNext} onBack={handleBack} />;  
+          return <StepFour onNext={handleNext} onBack={() => setActiveStep(2)} />;  
       case 4:
-        return <StepFive onNext={handleNext} />;
+        return <StepFive onNext={handleNext} onBack={() => setActiveStep(3)} />;
       case 5:
         return <StepSix onNext={handleNext} />;
       case 6:
