@@ -24,6 +24,15 @@ interface Experience {
   duties: string;
 }
 
+// Add interface for stored experience data
+interface StoredExperience {
+  organisation_name: string;
+  position: string;
+  start_date: string;
+  end_date: string;
+  duties: string;
+}
+
 interface StepSixProps {
   onNext: () => void;
   onBack: () => void;
@@ -92,6 +101,33 @@ const StepSix: React.FC<StepSixProps> = ({ onNext, onBack }) => {
       return;
     }
 
+    // Get existing experiences from session storage
+    const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+    const existingExperiences: StoredExperience[] = storedData.workExperience || [];
+
+    // Filter out only the new experiences that weren't in the existing data
+    const newExperiences = experiences.filter(newExp => {
+      // Check if this experience already exists in stored data
+      return !existingExperiences.some((existingExp: StoredExperience) => 
+        existingExp.organisation_name === newExp.organisationName &&
+        existingExp.position === newExp.position &&
+        existingExp.start_date.split('T')[0] === newExp.startDate &&
+        existingExp.end_date.split('T')[0] === newExp.endDate &&
+        existingExp.duties === newExp.duties
+      );
+    });
+
+    // If no new experiences were added, just proceed to next step
+    if (newExperiences.length === 0) {
+      setSnackbarMessage('Proceeding with existing work experience');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -101,7 +137,7 @@ const StepSix: React.FC<StepSixProps> = ({ onNext, onBack }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          workExperience: experiences
+          workExperience: newExperiences
         }),
       });
 
@@ -109,7 +145,7 @@ const StepSix: React.FC<StepSixProps> = ({ onNext, onBack }) => {
         throw new Error('Failed to save work experience');
       }
 
-      setSnackbarMessage('Work experience saved successfully!');
+      setSnackbarMessage('New work experience saved successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       

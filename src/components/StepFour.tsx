@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -24,6 +24,16 @@ interface StepFourProps {
   onBack: () => void;
 }
 
+interface DisabilityData {
+  hasDisability: string;
+  blindness: boolean;
+  cerebralPalsy: boolean;
+  deafness: boolean;
+  speechImpairment: boolean;
+  other: string;
+  extraAdaptations: string;
+}
+
 const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
   const [hasDisability, setHasDisability] = useState('no');
   const [disabilities, setDisabilities] = useState({
@@ -39,6 +49,30 @@ const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [initialData, setInitialData] = useState<DisabilityData | null>(null);
+
+  // Load existing disability data
+  useEffect(() => {
+    try {
+      const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+      if (storedData.disabilities) {
+        const disabilityData = storedData.disabilities;
+        setHasDisability(disabilityData.hasDisability.toLowerCase());
+        setDisabilities({
+          blindness: disabilityData.blindness || false,
+          cerebralPalsy: disabilityData.cerebralPalsy || false,
+          deafness: disabilityData.deafness || false,
+          speechImpairment: disabilityData.speechImpairment || false,
+          other: !!disabilityData.other,
+        });
+        setOtherDescription(disabilityData.other || '');
+        setExtraAdaptations(disabilityData.extraAdaptations || '');
+        setInitialData(disabilityData);
+      }
+    } catch (error) {
+      console.error('Error loading disability data:', error);
+    }
+  }, []);
 
   const handleDisabilityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setHasDisability(event.target.value);
@@ -51,6 +85,22 @@ const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
     });
   };
 
+  const hasDataChanged = () => {
+    if (!initialData) return true;
+
+    const currentData = {
+      hasDisability: hasDisability === 'yes' ? "Yes" : "No",
+      blindness: disabilities.blindness,
+      cerebralPalsy: disabilities.cerebralPalsy,
+      deafness: disabilities.deafness,
+      speechImpairment: disabilities.speechImpairment,
+      other: disabilities.other ? otherDescription : "",
+      extraAdaptations: extraAdaptations
+    };
+
+    return JSON.stringify(currentData) !== JSON.stringify(initialData);
+  };
+
   const handleSubmit = async () => {
     const referenceNumber = sessionStorage.getItem('applicationReference');
     if (!referenceNumber) {
@@ -60,10 +110,20 @@ const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
       return;
     }
 
+    // Check if data has changed
+    if (!hasDataChanged()) {
+      setSnackbarMessage('No changes to disability information, proceeding to next step');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+      return;
+    }
+
     try {
       setIsLoading(true);
       
-      // Prepare disability data according to API requirements
       const disabilityData = {
         hasDisability: hasDisability === 'yes' ? "Yes" : "No",
         blindness: disabilities.blindness,
@@ -86,11 +146,10 @@ const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
         throw new Error('Failed to save disability information');
       }
 
-      setSnackbarMessage('Disability information saved successfully!');
+      setSnackbarMessage('Disability information updated successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       
-      // Wait for snackbar to show before proceeding
       setTimeout(() => {
         onNext();
       }, 1500);

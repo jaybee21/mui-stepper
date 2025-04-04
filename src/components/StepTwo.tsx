@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -22,36 +22,115 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props,
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
+interface PersonalDetails {
+  title: string;
+  first_names: string;
+  surname: string;
+  marital_status: string;
+  maiden_name?: string;
+  national_id: string;
+  passport_number: string;
+  date_of_birth: string;
+  place_of_birth: string;
+  gender: string;
+  citizenship: string;
+  nationality: string;
+  residential_address: string;
+  postal_address: string;
+  city: string;
+  country: string;
+  phone: string;
+  email: string;
+}
+
 interface StepTwoProps {
   onNext: () => void;
   onBack: () => void;
 }
 
 const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
-  // Get stored application data
-  const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
-  const personalDetails = storedData.personalDetails || {};
-  
+  const [initialData, setInitialData] = useState<PersonalDetails | null>(null);
   const [formData, setFormData] = useState({
-    title: personalDetails.title || '',
-    firstNames: personalDetails.first_names || '',
-    surname: personalDetails.surname || '',
-    maritalStatus: personalDetails.marital_status || '',
-    maidenName: personalDetails.maiden_name || '', // optional
-    nationalId: personalDetails.national_id || '',
-    passportNumber: personalDetails.passport_number || '',
-    dateOfBirth: personalDetails.date_of_birth ? new Date(personalDetails.date_of_birth) : null,
-    placeOfBirth: personalDetails.place_of_birth || '',
-    gender: personalDetails.gender || '',
-    citizenship: personalDetails.citizenship || '',
-    nationality: personalDetails.nationality || '',
-    residentialAddress: personalDetails.residential_address || '',
-    postalAddress: personalDetails.postal_address || '',
-    city: personalDetails.city || '',
-    country: personalDetails.country || '',
-    phone: personalDetails.phone || '',
-    email: personalDetails.email || '',
+    title: '',
+    firstNames: '',
+    surname: '',
+    maritalStatus: '',
+    maidenName: '',
+    nationalId: '',
+    passportNumber: '',
+    dateOfBirth: null as Date | null,
+    placeOfBirth: '',
+    gender: '',
+    citizenship: '',
+    nationality: '',
+    residentialAddress: '',
+    postalAddress: '',
+    city: '',
+    country: '',
+    phone: '',
+    email: '',
   });
+
+  // Load existing personal details
+  useEffect(() => {
+    try {
+      const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+      if (storedData.personalDetails) {
+        const personalDetails = storedData.personalDetails;
+        setFormData({
+          title: personalDetails.title || '',
+          firstNames: personalDetails.first_names || '',
+          surname: personalDetails.surname || '',
+          maritalStatus: personalDetails.marital_status || '',
+          maidenName: personalDetails.maiden_name || '',
+          nationalId: personalDetails.national_id || '',
+          passportNumber: personalDetails.passport_number || '',
+          dateOfBirth: personalDetails.date_of_birth ? new Date(personalDetails.date_of_birth) : null,
+          placeOfBirth: personalDetails.place_of_birth || '',
+          gender: personalDetails.gender || '',
+          citizenship: personalDetails.citizenship || '',
+          nationality: personalDetails.nationality || '',
+          residentialAddress: personalDetails.residential_address || '',
+          postalAddress: personalDetails.postal_address || '',
+          city: personalDetails.city || '',
+          country: personalDetails.country || '',
+          phone: personalDetails.phone || '',
+          email: personalDetails.email || '',
+        });
+        setInitialData(personalDetails);
+      }
+    } catch (error) {
+      console.error('Error loading personal details:', error);
+    }
+  }, []);
+
+  const hasDataChanged = () => {
+    if (!initialData) return true;
+
+    const currentData = {
+      title: formData.title,
+      first_names: formData.firstNames,
+      surname: formData.surname,
+      marital_status: formData.maritalStatus,
+      maiden_name: formData.maidenName,
+      national_id: formData.nationalId,
+      passport_number: formData.passportNumber,
+      date_of_birth: formData.dateOfBirth ? formData.dateOfBirth.toISOString().split('T')[0] : null,
+      place_of_birth: formData.placeOfBirth,
+      gender: formData.gender,
+      citizenship: formData.citizenship,
+      nationality: formData.nationality,
+      residential_address: formData.residentialAddress,
+      postal_address: formData.postalAddress,
+      city: formData.city,
+      country: formData.country,
+      phone: formData.phone,
+      email: formData.email,
+    };
+
+    // Compare the current data with initial data
+    return JSON.stringify(currentData) !== JSON.stringify(initialData);
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -104,6 +183,17 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
       return;
     }
 
+    // Check if data has changed
+    if (!hasDataChanged()) {
+      setSnackbarMessage('No changes to personal information, proceeding to next step');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/personal-details`, {
@@ -121,11 +211,10 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
         throw new Error('Failed to save personal details');
       }
 
-      setSnackbarMessage('Personal details saved successfully!');
+      setSnackbarMessage('Personal details updated successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       
-      // Wait for snackbar to show before proceeding
       setTimeout(() => {
         onNext();
       }, 1500);

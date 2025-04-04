@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -14,22 +14,27 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props,
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
+interface NextOfKinData {
+  first_name: string;
+  last_name: string;
+  relationship: string;
+  contact_address: string;
+  contact_tel: string;
+}
+
 interface StepThreeProps {
   onNext: () => void;
   onBack: () => void;
 }
 
 const StepThree: React.FC<StepThreeProps> = ({ onNext, onBack }) => {
-  // Get stored application data
-  const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
-  const nextOfKin = storedData.nextOfKin?.[0] || {};
-
+  const [initialData, setInitialData] = useState<NextOfKinData | null>(null);
   const [formData, setFormData] = useState({
-    firstName: nextOfKin.first_name || '',
-    lastName: nextOfKin.last_name || '',
-    relationship: nextOfKin.relationship || '',
-    contactAddress: nextOfKin.contact_address || '',
-    contactTel: nextOfKin.contact_tel || '',
+    firstName: '',
+    lastName: '',
+    relationship: '',
+    contactAddress: '',
+    contactTel: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,6 +42,40 @@ const StepThree: React.FC<StepThreeProps> = ({ onNext, onBack }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+  // Load existing next of kin data
+  useEffect(() => {
+    try {
+      const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+      if (storedData.nextOfKin?.[0]) {
+        const nextOfKin = storedData.nextOfKin[0];
+        setFormData({
+          firstName: nextOfKin.first_name || '',
+          lastName: nextOfKin.last_name || '',
+          relationship: nextOfKin.relationship || '',
+          contactAddress: nextOfKin.contact_address || '',
+          contactTel: nextOfKin.contact_tel || '',
+        });
+        setInitialData(nextOfKin);
+      }
+    } catch (error) {
+      console.error('Error loading next of kin data:', error);
+    }
+  }, []);
+
+  const hasDataChanged = () => {
+    if (!initialData) return true;
+
+    const currentData = {
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      relationship: formData.relationship,
+      contact_address: formData.contactAddress,
+      contact_tel: formData.contactTel,
+    };
+
+    return JSON.stringify(currentData) !== JSON.stringify(initialData);
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -73,6 +112,17 @@ const StepThree: React.FC<StepThreeProps> = ({ onNext, onBack }) => {
       return;
     }
 
+    // Check if data has changed
+    if (!hasDataChanged()) {
+      setSnackbarMessage('No changes to next of kin information, proceeding to next step');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setTimeout(() => {
+        onNext();
+      }, 1500);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/next-of-kin`, {
@@ -93,11 +143,10 @@ const StepThree: React.FC<StepThreeProps> = ({ onNext, onBack }) => {
         throw new Error('Failed to save next of kin details');
       }
 
-      setSnackbarMessage('Next of kin details saved successfully!');
+      setSnackbarMessage('Next of kin details updated successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       
-      // Wait for snackbar to show before proceeding
       setTimeout(() => {
         onNext();
       }, 1500);
