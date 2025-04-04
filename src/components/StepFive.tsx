@@ -180,12 +180,16 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
       return false;
     }
 
-    // Validate tertiary education (required)
-    if (!institutionName || !degreeDiploma || !fieldOfStudy || !yearCompleted) {
-      setSnackbarMessage('Please complete all tertiary education fields');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return false;
+    // Only validate tertiary education fields if any of them are filled
+    const hasTertiaryEducation = institutionName || degreeDiploma || fieldOfStudy || yearCompleted;
+    if (hasTertiaryEducation) {
+      // If any field is filled, all fields must be filled
+      if (!institutionName || !degreeDiploma || !fieldOfStudy || !yearCompleted) {
+        setSnackbarMessage('Please complete all tertiary education fields or leave them all empty');
+        setSnackbarSeverity('error');
+        setOpenSnackbar(true);
+        return false;
+      }
     }
 
     return true;
@@ -217,12 +221,12 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
             }))
           }
         ],
-        tertiaryEducation: {
+        tertiaryEducation: institutionName ? {
           institutionName: institutionName,
           qualificationObtained: degreeDiploma,
           fieldOfStudy: fieldOfStudy,
           yearCompleted: parseInt(yearCompleted)
-        }
+        } : null
       };
 
       // Add A-level if provided
@@ -519,11 +523,13 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
 
       {/* Tertiary Education Section */}
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-        Tertiary Education (Required)
+        Tertiary Education (Optional)
+      </Typography>
+      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+        If you have tertiary education, please fill in all fields below. Otherwise, you can leave them empty.
       </Typography>
       <TextField
         fullWidth
-        required
         label="Name of Institution"
         variant="outlined"
         value={institutionName}
@@ -533,7 +539,6 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
 
       <TextField
         fullWidth
-        required
         label="Qualification Obtained (Degree/Diploma)"
         variant="outlined"
         value={degreeDiploma}
@@ -543,7 +548,6 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
 
       <TextField
         fullWidth
-        required
         label="Field of Study"
         variant="outlined"
         value={fieldOfStudy}
@@ -553,7 +557,6 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
 
       <TextField
         fullWidth
-        required
         label="Year Completed"
         variant="outlined"
         type="number"
