@@ -156,14 +156,15 @@ const MainContent: FC = () => {
             display: { xs: 'none', sm: 'block' },
             position: 'relative',
             width: '100%',
-            mb: 4
+            mb: 4,
+            mt: 8, // More space for labels above
+            px: 4 // Padding to prevent text cut-off
           }}>
-            {/* Numbers row */}
+            {/* Numbers row with labels above */}
             <Box sx={{
               display: 'flex',
               justifyContent: 'space-between',
               position: 'relative',
-              mb: 2,
               '&::after': {
                 content: '""',
                 position: 'absolute',
@@ -175,104 +176,130 @@ const MainContent: FC = () => {
                 zIndex: 0,
               }
             }}>
-              {steps.map((_, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    position: 'relative',
-                    width: 40,
-                    height: 40,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1,
-                  }}
-                >
-                  <Fade in={showNumbers} timeout={800}>
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: activeStep >= index ? 'primary.main' : 'grey.400',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        transition: 'all 0.3s ease',
-                        boxShadow: showingLabelIndex === index ? 
-                          '0 4px 8px rgba(25, 118, 210, 0.25)' : 
-                          '0 2px 4px rgba(0,0,0,0.2)',
-                        transform: showingLabelIndex === index ? 'scale(1.1)' : 'scale(1)',
-                      }}
-                    >
-                      {index + 1}
-                    </Box>
-                  </Fade>
-                </Box>
-              ))}
-            </Box>
-
-            {/* Labels row */}
-            <Box sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              position: 'relative',
-              px: 1,
-            }}>
               {steps.map((label, index) => (
                 <Box
                   key={index}
                   sx={{
-                    width: 40,
-                    display: 'flex',
-                    justifyContent: 'center',
                     position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '120px', // Fixed width for each step
                   }}
                 >
-                  <Grow 
-                    in={showingLabelIndex === index} 
-                    timeout={{ enter: 800, exit: 400 }}
-                    style={{
-                      transformOrigin: 'top center',
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 'max-content',
-                        maxWidth: '200px',
-                        fontWeight: 500,
-                        color: showingLabelIndex === index ? 'primary.main' : 'text.primary',
-                        transition: 'all 0.3s ease',
-                        px: 2,
-                        py: 0.5,
-                        backgroundColor: showingLabelIndex === index ? 
-                          'rgba(25, 118, 210, 0.08)' : 
-                          'transparent',
-                        borderRadius: '4px',
-                        textAlign: 'center',
-                        animation: showingLabelIndex === index ?
-                          'fadeInUp 0.8s ease-out' : 'none',
-                        '@keyframes fadeInUp': {
-                          '0%': { 
-                            opacity: 0,
-                            transform: 'translate(-50%, 10px)',
-                          },
-                          '100%': {
-                            opacity: 1,
-                            transform: 'translate(-50%, 0)',
-                          },
-                        },
+                  {/* Label container */}
+                  <Box sx={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    width: '100%',
+                    mb: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}>
+                    <Grow 
+                      in={showingLabelIndex === index} 
+                      timeout={{ enter: 800, exit: 400 }}
+                      style={{
+                        transformOrigin: 'bottom center',
                       }}
                     >
-                      {label}
-                    </Typography>
-                  </Grow>
+                      <Box sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '100%',
+                      }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 500,
+                            color: showingLabelIndex === index ? 'primary.main' : 'text.primary',
+                            transition: 'all 0.3s ease',
+                            px: 1,
+                            py: 0.5,
+                            backgroundColor: showingLabelIndex === index ? 
+                              'rgba(25, 118, 210, 0.08)' : 
+                              'transparent',
+                            borderRadius: '4px',
+                            textAlign: 'center',
+                            fontSize: '0.875rem',
+                            mb: 1,
+                            maxWidth: '100%',
+                            animation: showingLabelIndex === index ?
+                              'fadeInDown 0.8s ease-out' : 'none',
+                            '@keyframes fadeInDown': {
+                              '0%': { 
+                                opacity: 0,
+                                transform: 'translateY(-10px)',
+                              },
+                              '100%': {
+                                opacity: 1,
+                                transform: 'translateY(0)',
+                              },
+                            },
+                          }}
+                        >
+                          {label}
+                        </Typography>
+                        {/* Connecting line */}
+                        <Box sx={{
+                          width: '2px',
+                          height: '24px',
+                          background: showingLabelIndex === index ?
+                            'linear-gradient(180deg, #1976d2 0%, rgba(25, 118, 210, 0.3) 100%)' :
+                            'rgba(0, 0, 0, 0.12)',
+                          animation: showingLabelIndex === index ?
+                            'growDown 0.4s ease-out' : 'none',
+                          '@keyframes growDown': {
+                            '0%': { 
+                              height: 0,
+                              opacity: 0,
+                            },
+                            '100%': {
+                              height: '24px',
+                              opacity: 1,
+                            },
+                          },
+                        }} />
+                      </Box>
+                    </Grow>
+                  </Box>
+
+                  {/* Number circle */}
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: 40,
+                      height: 40,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 1,
+                    }}
+                  >
+                    <Fade in={showNumbers} timeout={800}>
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: activeStep >= index ? 'primary.main' : 'grey.400',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s ease',
+                          boxShadow: showingLabelIndex === index ? 
+                            '0 4px 8px rgba(25, 118, 210, 0.25)' : 
+                            '0 2px 4px rgba(0,0,0,0.2)',
+                          transform: showingLabelIndex === index ? 'scale(1.1)' : 'scale(1)',
+                        }}
+                      >
+                        {index + 1}
+                      </Box>
+                    </Fade>
+                  </Box>
                 </Box>
               ))}
             </Box>
