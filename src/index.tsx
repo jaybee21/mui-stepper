@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 
 const theme = createTheme({
@@ -23,7 +24,9 @@ root.render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <App />
+      <BrowserRouter basename="/apply-online">
+        <App />
+      </BrowserRouter>
     </ThemeProvider>
   </StrictMode>
 );

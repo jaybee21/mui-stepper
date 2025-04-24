@@ -6,7 +6,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js",
-    assetModuleFilename: 'images/[hash][ext][query]'
+    assetModuleFilename: 'images/[hash][ext][query]',
+    publicPath: '/apply-online/'
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".jsx", ".json", ".png", ".jpg", ".jpeg"],
@@ -20,9 +21,9 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/,
-        exclude: /node_modules/,
-        use: "ts-loader",
+        test: /\.(js|jsx|ts|tsx)$/,
+        exclude: /node_modules/,      // SKIP transpiling MUI in node_modules
+        use: 'babel-loader'
       },
       {
         test: /\.(js|jsx)$/,
@@ -63,6 +64,11 @@ module.exports = {
     },
     port: 3001,
     hot: true,
-    historyApiFallback: true,
+    historyApiFallback: {
+      index: '/apply-online/index.html'
+    },
+    devMiddleware: {
+      publicPath: '/apply-online/'
+    }
   },
 };

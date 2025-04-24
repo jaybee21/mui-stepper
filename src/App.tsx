@@ -1,5 +1,5 @@
 import { FC, ReactElement, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   Box,
   Stepper,
@@ -216,27 +216,25 @@ const App: FC = (): ReactElement => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainContent />} />
-        <Route 
-          path="/admin" 
-          element={
-            isAuthenticated ? 
-              <Navigate to="/admin/dashboard" /> : 
-              <Login setIsAuthenticated={setIsAuthenticated} />
-          } 
-        />
-        <Route 
-          path="/admin/dashboard" 
-          element={
-            isAuthenticated ? 
-              <Dashboard /> : 
-              <Navigate to="/admin" />
-          } 
-        />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<MainContent />} />
+      <Route 
+        path="/admin" 
+        element={
+          isAuthenticated ? 
+            <Navigate to="/admin/dashboard" /> : 
+            <Login setIsAuthenticated={setIsAuthenticated} />
+        } 
+      />
+      <Route 
+        path="/admin/dashboard" 
+        element={
+          isAuthenticated ? 
+            <Dashboard /> : 
+            <Navigate to="/admin" />
+        } 
+      />
+    </Routes>
   );
 };
 

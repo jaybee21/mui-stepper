@@ -1,5 +1,7 @@
-{
-  "presets": [
+module.exports = function (api) {
+  api.cache(true);
+
+  const presets = [
     ["@babel/preset-env", {
       "modules": false,
       "targets": {
@@ -13,28 +15,29 @@
       "runtime": "automatic"
     }],
     "@babel/preset-typescript"
-  ],
-  "plugins": [
+  ];
+
+  const plugins = [
     ["@babel/plugin-transform-runtime", {
       "regenerator": true,
       "helpers": true,
       "useESModules": true
     }]
-  ],
-  "overrides": [{
-    "include": ["./node_modules/@mui/icons-material/**/*.js"],
-    "compact": false
-  }],
-  "env": {
-    "production": {
-      "comments": false
+  ];
+
+  return {
+    presets,
+    plugins,
+    overrides: [{
+      include: ["./node_modules/@mui/icons-material/**/*.js"],
+      compact: false
+    }],
+    sourceType: "unambiguous",
+    assumptions: {
+      setPublicClassFields: true
     },
-    "development": {
-      "compact": false
+    generatorOpts: {
+      maxSize: 2097152 // 2MB
     }
-  },
-  "assumptions": {
-    "setPublicClassFields": true
-  },
-  "sourceType": "unambiguous"
-}
+  };
+}; 

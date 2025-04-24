@@ -37,11 +37,12 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.26.10",
+    "@babel/runtime": "^7.27.0",
     "@mui/types": "^7.2.21",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "file-loader": "^6.2.0",
     "typescript": "^5.7.3"
   },
-  "homepage": "."
+  "homepage": "/apply-online"
 }
