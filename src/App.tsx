@@ -1,4 +1,4 @@
-import { FC, ReactElement, useState } from 'react';
+import { FC, ReactElement, useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   Box,
@@ -9,6 +9,8 @@ import {
   Typography,
   Container,
   Paper,
+  Grow,
+  Fade,
 } from '@mui/material';
 import Header from './components/Header';
 import StepOne from './components/StepOne'; 
@@ -36,6 +38,32 @@ const steps = [
 const MainContent: FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set<number>());
+  const [showingLabelIndex, setShowingLabelIndex] = useState(-1);
+  const [showNumbers, setShowNumbers] = useState(false);
+
+  // Control the animation sequence
+  useEffect(() => {
+    // First show only numbers
+    setTimeout(() => setShowNumbers(true), 1000);
+
+    // Then start the label animation sequence
+    const startLabelAnimations = setTimeout(() => {
+      const animateLabels = () => {
+        setShowingLabelIndex((prev) => {
+          if (prev >= steps.length - 1) return 0;
+          return prev + 1;
+        });
+      };
+
+      // Start the sequence
+      animateLabels();
+      const interval = setInterval(animateLabels, 3000);
+
+      return () => clearInterval(interval);
+    }, 2000);
+
+    return () => clearTimeout(startLabelAnimations);
+  }, []);
 
   const isStepSkipped = (step: number) => {
     return skipped.has(step);
@@ -123,59 +151,143 @@ const MainContent: FC = () => {
           >
             Application Process
           </Typography>
-          <Stepper 
-            activeStep={activeStep}
-            sx={{
-              '& .MuiStepLabel-label': {
-                fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                whiteSpace: 'normal',
-                textAlign: 'left',
-                lineHeight: 1.2,
-              },
-              '& .MuiStepper-root': {
-                padding: '24px 0',
-              },
-              '& .MuiStep-root': {
-                padding: { xs: '8px 0', sm: '8px 16px' },
-              },
-              '& .MuiStepConnector-line': {
-                minHeight: { xs: '24px', sm: '0' },
-              },
-              '@media (max-width: 600px)': {
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                '& .MuiStep-root': {
-                  width: '100%',
-                  mb: 1,
-                },
-                '& .MuiStepConnector-root': {
-                  display: 'none',
-                },
-              },
-              '@media (min-width: 601px)': {
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 1,
-                justifyContent: 'center',
-                '& .MuiStep-root': {
-                  flex: '0 1 auto',
-                  maxWidth: '25%',
-                },
+          {/* Desktop view */}
+          <Box sx={{ 
+            display: { xs: 'none', sm: 'block' },
+            position: 'relative',
+            width: '100%',
+            mb: 4
+          }}>
+            {/* Numbers row */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              position: 'relative',
+              mb: 2,
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                left: '16px',
+                right: '16px',
+                top: '50%',
+                height: '2px',
+                background: 'linear-gradient(90deg, #1976d2 0%, #90caf9 100%)',
+                zIndex: 0,
               }
-            }}
-          >
-            {steps.map((label, index) => {
-              const stepProps: { completed?: boolean } = {};
-              if (isStepSkipped(index)) {
-                stepProps.completed = false;
-              }
-              return (
-                <Step key={label} {...stepProps}>
+            }}>
+              {steps.map((_, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    position: 'relative',
+                    width: 40,
+                    height: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1,
+                  }}
+                >
+                  <Fade in={showNumbers} timeout={800}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: activeStep >= index ? 'primary.main' : 'grey.400',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        transition: 'all 0.3s ease',
+                        boxShadow: showingLabelIndex === index ? 
+                          '0 4px 8px rgba(25, 118, 210, 0.25)' : 
+                          '0 2px 4px rgba(0,0,0,0.2)',
+                        transform: showingLabelIndex === index ? 'scale(1.1)' : 'scale(1)',
+                      }}
+                    >
+                      {index + 1}
+                    </Box>
+                  </Fade>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Labels row */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              position: 'relative',
+              px: 1,
+            }}>
+              {steps.map((label, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    width: 40,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <Grow 
+                    in={showingLabelIndex === index} 
+                    timeout={{ enter: 800, exit: 400 }}
+                    style={{
+                      transformOrigin: 'top center',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 'max-content',
+                        maxWidth: '200px',
+                        fontWeight: 500,
+                        color: showingLabelIndex === index ? 'primary.main' : 'text.primary',
+                        transition: 'all 0.3s ease',
+                        px: 2,
+                        py: 0.5,
+                        backgroundColor: showingLabelIndex === index ? 
+                          'rgba(25, 118, 210, 0.08)' : 
+                          'transparent',
+                        borderRadius: '4px',
+                        textAlign: 'center',
+                        animation: showingLabelIndex === index ?
+                          'fadeInUp 0.8s ease-out' : 'none',
+                        '@keyframes fadeInUp': {
+                          '0%': { 
+                            opacity: 0,
+                            transform: 'translate(-50%, 10px)',
+                          },
+                          '100%': {
+                            opacity: 1,
+                            transform: 'translate(-50%, 0)',
+                          },
+                        },
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                  </Grow>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Mobile view remains unchanged */}
+          <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+            <Stepper activeStep={activeStep}>
+              {steps.map((label, index) => (
+                <Step key={label}>
                   <StepLabel>{label}</StepLabel>
                 </Step>
-              );
-            })}
-          </Stepper>
+              ))}
+            </Stepper>
+          </Box>
           {activeStep === steps.length ? (
             <>
               <Box sx={{ mt: 4, mb: 2 }}>
