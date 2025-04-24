@@ -11,6 +11,10 @@ import {
   Paper,
   Grow,
   Fade,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import Header from './components/Header';
 import StepOne from './components/StepOne'; 
@@ -305,15 +309,48 @@ const MainContent: FC = () => {
             </Box>
           </Box>
 
-          {/* Mobile view remains unchanged */}
+          {/* Mobile view */}
           <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-            <Stepper activeStep={activeStep}>
+            <List sx={{ width: '100%', px: 2 }}>
               {steps.map((label, index) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
+                <ListItem
+                  key={index}
+                  sx={{
+                    mb: 1,
+                    p: 1.5,
+                    borderRadius: 1,
+                    bgcolor: activeStep >= index ? 'rgba(25, 118, 210, 0.04)' : 'transparent',
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: activeStep >= index ? 'primary.main' : 'grey.400',
+                        color: 'white',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {index + 1}
+                    </Box>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={label}
+                    sx={{
+                      '& .MuiListItemText-primary': {
+                        fontSize: '0.875rem',
+                        fontWeight: activeStep >= index ? 500 : 400,
+                      }
+                    }}
+                  />
+                </ListItem>
               ))}
-            </Stepper>
+            </List>
           </Box>
           {activeStep === steps.length ? (
             <>
