@@ -126,23 +126,42 @@ const MainContent: FC = () => {
           <Stepper 
             activeStep={activeStep}
             sx={{
-              overflowX: 'auto',
-              overflowY: 'hidden',
               '& .MuiStepLabel-label': {
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
+                textAlign: 'left',
+                lineHeight: 1.2,
               },
               '& .MuiStepper-root': {
                 padding: '24px 0',
+              },
+              '& .MuiStep-root': {
+                padding: { xs: '8px 0', sm: '8px 16px' },
+              },
+              '& .MuiStepConnector-line': {
+                minHeight: { xs: '24px', sm: '0' },
               },
               '@media (max-width: 600px)': {
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 '& .MuiStep-root': {
                   width: '100%',
-                  mb: 2,
+                  mb: 1,
+                },
+                '& .MuiStepConnector-root': {
+                  display: 'none',
                 },
               },
+              '@media (min-width: 601px)': {
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                justifyContent: 'center',
+                '& .MuiStep-root': {
+                  flex: '0 1 auto',
+                  maxWidth: '25%',
+                },
+              }
             }}
           >
             {steps.map((label, index) => {
