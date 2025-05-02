@@ -184,35 +184,62 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
       return;
     }
 
-    // Check if data has changed
-    if (!hasDataChanged()) {
-      setSnackbarMessage('No changes to personal information, proceeding to next step');
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
-      setTimeout(() => {
-        onNext();
-      }, 1500);
-      return;
-    }
+    // Get existing application data from sessionStorage
+    const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+    const existingPersonalDetails = storedData.personalDetails;
+
+    // Always prepare all personal details data, using existing values if no changes
+    const currentData = {
+      title: formData.title || existingPersonalDetails?.title || '',
+      first_names: formData.firstNames || existingPersonalDetails?.first_names || '',
+      surname: formData.surname || existingPersonalDetails?.surname || '',
+      marital_status: formData.maritalStatus || existingPersonalDetails?.marital_status || '',
+      maiden_name: formData.maidenName || existingPersonalDetails?.maiden_name || '',
+      national_id: formData.nationalId || existingPersonalDetails?.national_id || '',
+      passport_number: formData.passportNumber || existingPersonalDetails?.passport_number || '',
+      date_of_birth: formData.dateOfBirth 
+        ? formData.dateOfBirth.toISOString().split('T')[0] 
+        : existingPersonalDetails?.date_of_birth || null,
+      place_of_birth: formData.placeOfBirth || existingPersonalDetails?.place_of_birth || '',
+      gender: formData.gender || existingPersonalDetails?.gender || '',
+      citizenship: formData.citizenship || existingPersonalDetails?.citizenship || '',
+      nationality: formData.nationality || existingPersonalDetails?.nationality || '',
+      residential_address: formData.residentialAddress || existingPersonalDetails?.residential_address || '',
+      postal_address: formData.postalAddress || existingPersonalDetails?.postal_address || '',
+      city: formData.city || existingPersonalDetails?.city || '',
+      country: formData.country || existingPersonalDetails?.country || '',
+      phone: formData.phone || existingPersonalDetails?.phone || '',
+      email: formData.email || existingPersonalDetails?.email || '',
+    };
 
     try {
       setIsLoading(true);
+      
+      // Determine if we're creating new or updating existing based on applicationData
+      const hasApplicationData = Object.keys(storedData).length > 0;
+      const method = hasApplicationData ? 'PUT' : 'POST';
+      const successMessage = hasApplicationData ? 'Personal details updated successfully!' : 'Personal details created successfully!';
+
       const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/personal-details`, {
-        method: 'POST',
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.toISOString().split('T')[0] : null,
-        }),
+        body: JSON.stringify(currentData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save personal details');
+        throw new Error(`Failed to ${hasApplicationData ? 'update' : 'create'} personal details`);
       }
 
-      setSnackbarMessage('Personal details updated successfully!');
+      // Update the stored data with new personal details
+      const updatedData = {
+        ...storedData,
+        personalDetails: currentData
+      };
+      sessionStorage.setItem('applicationData', JSON.stringify(updatedData));
+
+      setSnackbarMessage(successMessage);
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       
@@ -220,7 +247,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
         onNext();
       }, 1500);
     } catch (error) {
-      setSnackbarMessage('Failed to save personal details. Please try again.');
+      setSnackbarMessage('Failed to process personal details. Please try again.');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
     } finally {

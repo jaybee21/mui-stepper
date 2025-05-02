@@ -27,6 +27,7 @@ import StepSeven from './components/StepSeven';
 import StepEight from './components/StepEight'; 
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import backgroundImage from './assets/wuabackground.jpg';
 
 const steps = [
   'Program Selection',
@@ -117,7 +118,7 @@ const MainContent: FC = () => {
     <Box 
       sx={{ 
         minHeight: '100vh',
-        backgroundImage: 'url(/wuabackground.jpg)',
+        backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
