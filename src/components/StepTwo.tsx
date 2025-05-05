@@ -186,30 +186,27 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
 
     // Get existing application data from sessionStorage
     const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
-    const existingPersonalDetails = storedData.personalDetails;
 
-    // Always prepare all personal details data, using existing values if no changes
+    // Send all form data directly
     const currentData = {
-      title: formData.title || existingPersonalDetails?.title || '',
-      first_names: formData.firstNames || existingPersonalDetails?.first_names || '',
-      surname: formData.surname || existingPersonalDetails?.surname || '',
-      marital_status: formData.maritalStatus || existingPersonalDetails?.marital_status || '',
-      maiden_name: formData.maidenName || existingPersonalDetails?.maiden_name || '',
-      national_id: formData.nationalId || existingPersonalDetails?.national_id || '',
-      passport_number: formData.passportNumber || existingPersonalDetails?.passport_number || '',
-      date_of_birth: formData.dateOfBirth 
-        ? formData.dateOfBirth.toISOString().split('T')[0] 
-        : existingPersonalDetails?.date_of_birth || null,
-      place_of_birth: formData.placeOfBirth || existingPersonalDetails?.place_of_birth || '',
-      gender: formData.gender || existingPersonalDetails?.gender || '',
-      citizenship: formData.citizenship || existingPersonalDetails?.citizenship || '',
-      nationality: formData.nationality || existingPersonalDetails?.nationality || '',
-      residential_address: formData.residentialAddress || existingPersonalDetails?.residential_address || '',
-      postal_address: formData.postalAddress || existingPersonalDetails?.postal_address || '',
-      city: formData.city || existingPersonalDetails?.city || '',
-      country: formData.country || existingPersonalDetails?.country || '',
-      phone: formData.phone || existingPersonalDetails?.phone || '',
-      email: formData.email || existingPersonalDetails?.email || '',
+      title: formData.title,
+      first_names: formData.firstNames,
+      surname: formData.surname,
+      marital_status: formData.maritalStatus,
+      maiden_name: formData.maidenName,
+      national_id: formData.nationalId,
+      passport_number: formData.passportNumber,
+      date_of_birth: formData.dateOfBirth ? formData.dateOfBirth.toISOString().split('T')[0] : null,
+      place_of_birth: formData.placeOfBirth,
+      gender: formData.gender,
+      citizenship: formData.citizenship,
+      nationality: formData.nationality,
+      residential_address: formData.residentialAddress,
+      postal_address: formData.postalAddress,
+      city: formData.city,
+      country: formData.country,
+      phone: formData.phone,
+      email: formData.email,
     };
 
     try {

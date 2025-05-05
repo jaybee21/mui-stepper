@@ -18,6 +18,20 @@ const StepEight: React.FC<StepEightProps> = ({ onNext }) => {
     setIsAgreed(event.target.checked);
   };
 
+  const handleSubmit = () => {
+    if (isAgreed) {
+      // Clear session storage items
+      sessionStorage.removeItem('applicationData');
+      sessionStorage.removeItem('applicationReference');
+      
+      // Handle submission logic here
+      alert("Application submitted successfully!");
+      onNext();
+    } else {
+      alert("You must agree to the terms and conditions before submitting.");
+    }
+  };
+
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6" sx={{ mb: 2 }}>
@@ -40,15 +54,7 @@ const StepEight: React.FC<StepEightProps> = ({ onNext }) => {
 
       <Button
         variant="contained"
-        onClick={() => {
-          if (isAgreed) {
-            // Handle submission logic here
-            alert("Application submitted successfully!");
-            onNext();
-          } else {
-            alert("You must agree to the terms and conditions before submitting.");
-          }
-        }}
+        onClick={handleSubmit}
         sx={{ mt: 2 }}
         disabled={!isAgreed}
       >
