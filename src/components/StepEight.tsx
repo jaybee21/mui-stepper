@@ -24,7 +24,6 @@ const StepEight: React.FC<StepEightProps> = ({ onNext }) => {
       sessionStorage.removeItem('applicationData');
       sessionStorage.removeItem('applicationReference');
       
-      // Handle submission logic here
       alert("Application submitted successfully!");
       onNext();
     } else {

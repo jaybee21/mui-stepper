@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import {
   Box,
   Drawer,
@@ -78,6 +78,7 @@ import WithPin from './WithPin';
 import ProspectiveStudents from './ProspectiveStudents';
 import { removeAuthToken, decodeToken, fetchUserProfile, updateUserProfile, resetPassword } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
+import { SelectChangeEvent } from '@mui/material';
 
 // Sample data
 const monthlyStats = [
@@ -173,7 +174,7 @@ const waitingAcceptanceData = [
 
 const Dashboard: FC = () => {
   const [open, setOpen] = React.useState(true);
-  const [timeFilter, setTimeFilter] = useState('thisMonth');
+  const [timeFilter, setTimeFilter] = useState('day');
   const [activeTab, setActiveTab] = useState<TabId>(TabId.DASHBOARD);
   const theme = useTheme();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
@@ -201,6 +202,50 @@ const Dashboard: FC = () => {
   });
   const [passwordError, setPasswordError] = useState('');
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoadingDashboard(true);
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('Fetching dashboard data with filter:', timeFilter); // Debug log
+
+      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/dashboard?filter=${timeFilter}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const data = await response.json();
+      console.log('Dashboard data received:', data); // Debug log
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError('Failed to load dashboard data');
+    } finally {
+      setIsLoadingDashboard(false);
+    }
+  };
+
+  // Call fetchDashboardData when component mounts and when timeFilter changes
+  useEffect(() => {
+    fetchDashboardData();
+  }, [timeFilter]);
+
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
+    setTimeFilter(event.target.value);
+  };
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -317,139 +362,146 @@ const Dashboard: FC = () => {
               <Select
                 value={timeFilter}
                 label="Time Period"
-                onChange={(e) => setTimeFilter(e.target.value)}
+                onChange={handleFilterChange}
               >
-                <MenuItem value="today">Today</MenuItem>
-                <MenuItem value="thisWeek">This Week</MenuItem>
-                <MenuItem value="thisMonth">This Month</MenuItem>
-                <MenuItem value="thisYear">This Year</MenuItem>
+                <MenuItem value="day">Today</MenuItem>
+                <MenuItem value="week">This Week</MenuItem>
+                <MenuItem value="month">This Month</MenuItem>
               </Select>
             </FormControl>
           </Grid>
         </Grid>
       </Box>
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Total Applications" 
-            value={stats.totalApplicants}
-            icon={<AssessmentIcon />}
-            trend={{ value: 12, isPositive: true }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Accepted" 
-            value={stats.acceptedApplicants}
-            icon={<CheckCircleIcon />}
-            trend={{ value: 8, isPositive: true }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Pending PIN" 
-            value={stats.waitingPin}
-            icon={<VpnKeyIcon />}
-            trend={{ value: 5, isPositive: false }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard 
-            title="Rejected" 
-            value={stats.rejectedApplicants}
-            icon={<CancelIcon />}
-            trend={{ value: 2, isPositive: true }}
-          />
-        </Grid>
-      </Grid>
+      {isLoadingDashboard ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Typography color="error" sx={{ textAlign: 'center', p: 3 }}>
+          {error}
+        </Typography>
+      ) : dashboardData ? (
+        <>
+          {/* Stats Cards */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Total Applications" 
+                value={dashboardData.summary.totalApplications.count}
+                icon={<AssessmentIcon />}
+                trend={{ 
+                  value: dashboardData.summary.totalApplications.change,
+                  isPositive: !dashboardData.summary.totalApplications.change.includes('-')
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Accepted" 
+                value={dashboardData.summary.accepted.count}
+                icon={<CheckCircleIcon />}
+                trend={{ 
+                  value: dashboardData.summary.accepted.change,
+                  isPositive: !dashboardData.summary.accepted.change.includes('-')
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Pending" 
+                value={dashboardData.summary.pending.count}
+                icon={<VpnKeyIcon />}
+                trend={{ 
+                  value: dashboardData.summary.pending.change,
+                  isPositive: !dashboardData.summary.pending.change.includes('-')
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Rejected" 
+                value={dashboardData.summary.rejected.count}
+                icon={<CancelIcon />}
+                trend={{ 
+                  value: dashboardData.summary.rejected.change,
+                  isPositive: !dashboardData.summary.rejected.change.includes('-')
+                }}
+              />
+            </Grid>
+          </Grid>
 
-      {/* Charts Section */}
-      <Grid container spacing={3}>
-        {/* Application Trends */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Application Trends
-            </Typography>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={monthlyStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <RechartsTooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="applications" 
-                  stroke="#13A215" 
-                  strokeWidth={2}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="accepted" 
-                  stroke="#0088FE" 
-                  strokeWidth={2}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="rejected" 
-                  stroke="#FF8042" 
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
+          {/* Charts Section */}
+          <Grid container spacing={3}>
+            {/* Application Trends */}
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3, height: '100%' }}>
+                <Typography variant="h6" sx={{ mb: 3 }}>
+                  Application Trends
+                </Typography>
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart data={dashboardData.trends}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="total" 
+                      stroke="#13A215" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="accepted" 
+                      stroke="#0088FE" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="rejected" 
+                      stroke="#FF8042" 
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
 
-        {/* Program Distribution */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Program Distribution
-            </Typography>
-            <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
-                <Pie
-                  data={programStats}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {programStats.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-
-        {/* Monthly Statistics */}
-        <Grid item xs={12}>
-          <Card sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Monthly Statistics
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <RechartsTooltip />
-                <Legend />
-                <Bar dataKey="applications" fill="#13A215" />
-                <Bar dataKey="accepted" fill="#0088FE" />
-                <Bar dataKey="rejected" fill="#FF8042" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </Grid>
-      </Grid>
+            {/* Program Distribution */}
+            <Grid item xs={12} md={4}>
+              <Card sx={{ p: 3, height: '100%' }}>
+                <Typography variant="h6" sx={{ mb: 3 }}>
+                  Program Distribution
+                </Typography>
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={dashboardData.programDistribution}
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="total"
+                      nameKey="programme"
+                    >
+                      {dashboardData.programDistribution.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
+          </Grid>
+        </>
+      ) : (
+        <Typography variant="h6" sx={{ textAlign: 'center', p: 3 }}>
+          No data available
+        </Typography>
+      )}
     </>
   );
 
@@ -939,7 +991,7 @@ const Dashboard: FC = () => {
             disabled={isPasswordLoading}
           >
             Cancel
-      </Button>
+          </Button>
           <Button 
             variant="contained"
             onClick={handlePasswordSubmit}
@@ -956,7 +1008,7 @@ const Dashboard: FC = () => {
             ) : (
               'Reset Password'
             )}
-      </Button>
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
