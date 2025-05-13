@@ -26,7 +26,9 @@ import {
   MenuItem,
   Stack,
 } from '@mui/material';
-import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon } from '@mui/icons-material';
+import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Application {
   id: number;
@@ -43,6 +45,7 @@ interface FullApplicationDetails {
   satelliteCampus: string;
   acceptedStatus: string;
   createdAt: string;
+  programme: string;
   fullApplication: {
     personalDetails: {
       title: string;
@@ -50,6 +53,7 @@ interface FullApplicationDetails {
       surname: string;
       email: string;
       phone: string;
+      address?: string;
     };
     educationDetails: Array<{
       qualification_type: string;
@@ -159,8 +163,8 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       // Extract filename from the path
       const fileName = filePath.split('\\').pop() || documentType;
       
-      // Make a request to download the file
-      const response = await fetch(`http://localhost:3000/dev/api/v1/documents/download?path=${encodeURIComponent(filePath)}`);
+      // Make a request to download the file using the new API endpoint
+      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/download?path=${encodeURIComponent(fileName)}`);
       
       if (!response.ok) {
         throw new Error('Failed to download document');
@@ -172,10 +176,18 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       // Create a URL for the blob
       const url = window.URL.createObjectURL(blob);
       
+      // Get student's full name from selectedApplication
+      const studentName = selectedApplication 
+        ? `${selectedApplication.fullApplication.personalDetails.first_names} ${selectedApplication.fullApplication.personalDetails.surname}`
+        : 'Unknown';
+      
+      // Create new filename with document type and student name
+      const newFileName = `${documentType}_${studentName.replace(/\s+/g, '_')}.${fileName.split('.').pop()}`;
+      
       // Create a temporary link element
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName;
+      link.download = newFileName;
       
       // Append to body, click, and remove
       document.body.appendChild(link);
@@ -205,6 +217,74 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleExportAsPdf = () => {
+    if (!selectedApplication) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Add header
+    doc.setFontSize(16);
+    doc.text('Application Form for Admission', pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('into Postgraduate/Undergraduate Degree Programmes', pageWidth / 2, 30, { align: 'center' });
+    
+    // Add application details
+    doc.setFontSize(10);
+    doc.text(`Application No: ${selectedApplication.referenceNumber}`, 20, 45);
+    doc.text(`Year of Application: ${new Date().getFullYear()}`, 20, 50);
+    
+    // Add programme details
+    doc.text('1. The year in which you wish to commence your studies at the University', 20, 65);
+    doc.text(selectedApplication.startingSemester.split('-')[0], 20, 70);
+    doc.text('Programme being applied for:', 20, 75);
+    doc.text(selectedApplication.programme || 'N/A', 20, 80);
+    doc.text('Region:', 20, 85);
+    doc.text(selectedApplication.satelliteCampus || 'N/A', 20, 90);
+    
+    // Add personal details
+    doc.text('2. Applicants Biodata', 20, 105);
+    const personalDetails = selectedApplication.fullApplication.personalDetails;
+    doc.text(`2.1 Surname: ${personalDetails.surname || 'N/A'}`, 20, 115);
+    doc.text(`2.2 Title: ${personalDetails.title || 'N/A'}`, 20, 120);
+    doc.text(`2.3 First names: ${personalDetails.first_names || 'N/A'}`, 20, 125);
+    doc.text(`2.15 Residential Address: ${personalDetails.address || 'N/A'}`, 20, 130);
+    doc.text(`E-mail address: ${personalDetails.email || 'N/A'}`, 20, 135);
+    doc.text(`Telephone: ${personalDetails.phone || 'N/A'}`, 20, 140);
+    
+    // Add education details
+    doc.text('5. Educational Qualifications', 20, 155);
+    doc.text('5.1 O Level or Equivalent', 20, 165);
+    
+    // Create table for education details
+    const educationData = selectedApplication.fullApplication.educationDetails.flatMap(edu => 
+      edu.subjects.map(subject => [
+        edu.qualification_type || 'N/A',
+        subject.subject_name || 'N/A',
+        subject.grade || 'N/A',
+        subject.year_written?.toString() || 'N/A'
+      ])
+    );
+    
+    autoTable(doc, {
+      startY: 170,
+      head: [['Institution', 'Subject', 'Grade', 'Year']],
+      body: educationData,
+      theme: 'grid',
+      headStyles: { fillColor: [19, 162, 21] },
+      margin: { left: 20 }
+    });
+    
+    // Add footer
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setFontSize(8);
+    doc.text('549 Arcturus Road, Harare', pageWidth / 2, pageHeight - 20, { align: 'center' });
+    doc.text('Website : www.apply.wua.ac.zw, E-mail : webmaster@wua.ac.zw', pageWidth / 2, pageHeight - 15, { align: 'center' });
+    
+    // Save the PDF
+    doc.save(`Application_${selectedApplication.referenceNumber}.pdf`);
   };
 
   return (
@@ -400,7 +480,24 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Application Details</DialogTitle>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Application Details</Typography>
+            <Button
+              variant="contained"
+              startIcon={<PdfIcon />}
+              onClick={handleExportAsPdf}
+              sx={{ 
+                bgcolor: '#13A215',
+                '&:hover': {
+                  bgcolor: '#0f7d10',
+                }
+              }}
+            >
+              Export as PDF
+            </Button>
+          </Box>
+        </DialogTitle>
         <DialogContent>
           {selectedApplication && (
             <Box sx={{ mt: 2 }}>
