@@ -45,26 +45,77 @@ interface FullApplicationDetails {
   satelliteCampus: string;
   acceptedStatus: string;
   createdAt: string;
-  programme: string;
   fullApplication: {
+    id: number;
+    reference_number: string;
+    starting_semester: string;
+    programme: string;
+    satellite_campus: string;
+    preferred_session: string;
+    wua_discovery_method: string;
+    previous_registration: string;
+    created_at: string;
+    year_of_commencement: string;
+    program_type: string;
+    accepted_status: string;
+    disabilities: Array<{
+      id: number;
+      application_id: number;
+      has_disability: string;
+      blindness: number;
+      cerebral_palsy: number;
+      deafness: number;
+      speech_impairment: number;
+      other: string | null;
+      extra_adaptations: string | null;
+    }>;
     personalDetails: {
+      id: number;
+      application_id: number;
       title: string;
       first_names: string;
       surname: string;
-      email: string;
+      marital_status: string;
+      maiden_name: string;
+      national_id: string;
+      passport_number: string;
+      date_of_birth: string;
+      place_of_birth: string;
+      gender: string;
+      citizenship: string;
+      nationality: string;
+      residential_address: string;
+      postal_address: string;
       phone: string;
-      address?: string;
+      email: string;
+      city: string;
+      country: string;
+    };
+    nextOfKin: {
+      id: number;
+      application_id: number;
+      first_name: string;
+      last_name: string;
+      relationship: string;
+      contact_address: string;
+      contact_tel: string;
     };
     educationDetails: Array<{
+      id: number;
+      application_id: number;
       qualification_type: string;
       examination_board: string;
       subjects: Array<{
+        id: number;
+        education_id: number;
         subject_name: string;
         grade: string;
         year_written: number;
       }>;
     }>;
     documents: Array<{
+      id: number;
+      application_id: number;
       document_type: string;
       file_path: string;
       uploaded_at: string;
@@ -222,69 +273,160 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
   const handleExportAsPdf = () => {
     if (!selectedApplication) return;
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
+    const pdfDoc = new jsPDF();
+    const pageWidth = pdfDoc.internal.pageSize.getWidth();
+    let yPosition = 20;
     
     // Add header
-    doc.setFontSize(16);
-    doc.text('Application Form for Admission', pageWidth / 2, 20, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('into Postgraduate/Undergraduate Degree Programmes', pageWidth / 2, 30, { align: 'center' });
+    pdfDoc.setFontSize(16);
+    pdfDoc.text('Application Form for Admission', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    pdfDoc.setFontSize(12);
+    pdfDoc.text('into Postgraduate/Undergraduate Degree Programmes', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
     
     // Add application details
-    doc.setFontSize(10);
-    doc.text(`Application No: ${selectedApplication.referenceNumber}`, 20, 45);
-    doc.text(`Year of Application: ${new Date().getFullYear()}`, 20, 50);
+    pdfDoc.setFontSize(10);
+    pdfDoc.text(`Application No: ${selectedApplication.referenceNumber}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Year of Application: ${new Date(selectedApplication.createdAt).getFullYear()}`, 20, yPosition);
+    yPosition += 15;
     
     // Add programme details
-    doc.text('1. The year in which you wish to commence your studies at the University', 20, 65);
-    doc.text(selectedApplication.startingSemester.split('-')[0], 20, 70);
-    doc.text('Programme being applied for:', 20, 75);
-    doc.text(selectedApplication.programme || 'N/A', 20, 80);
-    doc.text('Region:', 20, 85);
-    doc.text(selectedApplication.satelliteCampus || 'N/A', 20, 90);
+    pdfDoc.text('1. Programme Details', 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Starting Semester: ${selectedApplication.startingSemester}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Programme: ${selectedApplication.fullApplication.programme}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Program Type: ${selectedApplication.fullApplication.program_type}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Preferred Session: ${selectedApplication.fullApplication.preferred_session}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Region/Campus: ${selectedApplication.satelliteCampus}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Year of Commencement: ${selectedApplication.fullApplication.year_of_commencement}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`WUA Discovery Method: ${selectedApplication.fullApplication.wua_discovery_method}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Previous Registration: ${selectedApplication.fullApplication.previous_registration}`, 20, yPosition);
+    yPosition += 15;
     
     // Add personal details
-    doc.text('2. Applicants Biodata', 20, 105);
+    pdfDoc.text('2. Personal Information', 20, yPosition);
+    yPosition += 5;
     const personalDetails = selectedApplication.fullApplication.personalDetails;
-    doc.text(`2.1 Surname: ${personalDetails.surname || 'N/A'}`, 20, 115);
-    doc.text(`2.2 Title: ${personalDetails.title || 'N/A'}`, 20, 120);
-    doc.text(`2.3 First names: ${personalDetails.first_names || 'N/A'}`, 20, 125);
-    doc.text(`2.15 Residential Address: ${personalDetails.address || 'N/A'}`, 20, 130);
-    doc.text(`E-mail address: ${personalDetails.email || 'N/A'}`, 20, 135);
-    doc.text(`Telephone: ${personalDetails.phone || 'N/A'}`, 20, 140);
+    pdfDoc.text(`Title: ${personalDetails.title}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Full Name: ${personalDetails.first_names} ${personalDetails.surname}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Marital Status: ${personalDetails.marital_status}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Maiden Name: ${personalDetails.maiden_name || 'N/A'}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`National ID: ${personalDetails.national_id}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Passport Number: ${personalDetails.passport_number || 'N/A'}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Date of Birth: ${new Date(personalDetails.date_of_birth).toLocaleDateString()}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Place of Birth: ${personalDetails.place_of_birth}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Gender: ${personalDetails.gender}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Citizenship: ${personalDetails.citizenship}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Nationality: ${personalDetails.nationality}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Residential Address: ${personalDetails.residential_address}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Postal Address: ${personalDetails.postal_address}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`City: ${personalDetails.city}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Country: ${personalDetails.country}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Phone: ${personalDetails.phone}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Email: ${personalDetails.email}`, 20, yPosition);
+    yPosition += 15;
+    
+    // Add Next of Kin details
+    pdfDoc.text('3. Next of Kin Information', 20, yPosition);
+    yPosition += 5;
+    const nextOfKin = selectedApplication.fullApplication.nextOfKin;
+    pdfDoc.text(`Full Name: ${nextOfKin.first_name} ${nextOfKin.last_name}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Relationship: ${nextOfKin.relationship}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Contact Address: ${nextOfKin.contact_address}`, 20, yPosition);
+    yPosition += 5;
+    pdfDoc.text(`Contact Telephone: ${nextOfKin.contact_tel}`, 20, yPosition);
+    yPosition += 15;
+    
+    // Add Disabilities information
+    pdfDoc.text('4. Special Needs Information', 20, yPosition);
+    yPosition += 5;
+    const disabilities = selectedApplication.fullApplication.disabilities[0];
+    pdfDoc.text(`Has Disability: ${disabilities.has_disability}`, 20, yPosition);
+    yPosition += 5;
+    if (disabilities.has_disability === 'Yes') {
+      pdfDoc.text('Disability Types:', 20, yPosition);
+      yPosition += 5;
+      if (disabilities.blindness) pdfDoc.text('- Blindness', 25, yPosition), yPosition += 5;
+      if (disabilities.cerebral_palsy) pdfDoc.text('- Cerebral Palsy', 25, yPosition), yPosition += 5;
+      if (disabilities.deafness) pdfDoc.text('- Deafness', 25, yPosition), yPosition += 5;
+      if (disabilities.speech_impairment) pdfDoc.text('- Speech Impairment', 25, yPosition), yPosition += 5;
+      if (disabilities.other) pdfDoc.text(`- Other: ${disabilities.other}`, 25, yPosition), yPosition += 5;
+      if (disabilities.extra_adaptations) pdfDoc.text(`Extra Adaptations: ${disabilities.extra_adaptations}`, 20, yPosition), yPosition += 5;
+    }
+    yPosition += 10;
     
     // Add education details
-    doc.text('5. Educational Qualifications', 20, 155);
-    doc.text('5.1 O Level or Equivalent', 20, 165);
+    pdfDoc.text('5. Educational Qualifications', 20, yPosition);
+    yPosition += 10;
     
-    // Create table for education details
-    const educationData = selectedApplication.fullApplication.educationDetails.flatMap(edu => 
-      edu.subjects.map(subject => [
-        edu.qualification_type || 'N/A',
-        subject.subject_name || 'N/A',
-        subject.grade || 'N/A',
-        subject.year_written?.toString() || 'N/A'
-      ])
-    );
+    // Create tables for each education level
+    selectedApplication.fullApplication.educationDetails.forEach(edu => {
+      pdfDoc.text(`${edu.qualification_type} (${edu.examination_board})`, 20, yPosition);
+      yPosition += 5;
+      
+      const educationData = edu.subjects.map(subject => [
+        subject.subject_name,
+        subject.grade,
+        subject.year_written.toString()
+      ]);
+      
+      autoTable(pdfDoc, {
+        startY: yPosition,
+        head: [['Subject', 'Grade', 'Year']],
+        body: educationData,
+        theme: 'grid',
+        headStyles: { fillColor: [19, 162, 21] },
+        margin: { left: 20 }
+      });
+      
+      yPosition = (pdfDoc as any).lastAutoTable.finalY + 10;
+    });
     
-    autoTable(doc, {
-      startY: 170,
-      head: [['Institution', 'Subject', 'Grade', 'Year']],
-      body: educationData,
-      theme: 'grid',
-      headStyles: { fillColor: [19, 162, 21] },
-      margin: { left: 20 }
+    // Add documents list
+    pdfDoc.text('6. Submitted Documents', 20, yPosition);
+    yPosition += 5;
+    selectedApplication.fullApplication.documents.forEach(document => {
+      const docType = document.document_type.replace(/_/g, ' ').toUpperCase();
+      const uploadDate = new Date(document.uploaded_at).toLocaleDateString();
+      pdfDoc.text(`- ${docType} (Uploaded: ${uploadDate})`, 20, yPosition);
+      yPosition += 5;
     });
     
     // Add footer
-    const pageHeight = doc.internal.pageSize.getHeight();
-    doc.setFontSize(8);
-    doc.text('549 Arcturus Road, Harare', pageWidth / 2, pageHeight - 20, { align: 'center' });
-    doc.text('Website : www.apply.wua.ac.zw, E-mail : webmaster@wua.ac.zw', pageWidth / 2, pageHeight - 15, { align: 'center' });
+    const pageHeight = pdfDoc.internal.pageSize.getHeight();
+    pdfDoc.setFontSize(8);
+    pdfDoc.text('549 Arcturus Road, Harare', pageWidth / 2, pageHeight - 20, { align: 'center' });
+    pdfDoc.text('Website : www.apply.wua.ac.zw, E-mail : webmaster@wua.ac.zw', pageWidth / 2, pageHeight - 15, { align: 'center' });
     
     // Save the PDF
-    doc.save(`Application_${selectedApplication.referenceNumber}.pdf`);
+    pdfDoc.save(`Application_${selectedApplication.referenceNumber}.pdf`);
   };
 
   return (
