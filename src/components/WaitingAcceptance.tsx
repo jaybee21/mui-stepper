@@ -29,6 +29,7 @@ import {
 import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import wuaLogo from './wua-logo.png';
 
 interface Application {
   id: number;
@@ -277,117 +278,156 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     const pageWidth = pdfDoc.internal.pageSize.getWidth();
     let yPosition = 20;
     
+    // Add WUA logo
+    const logoWidth = 40;
+    const logoHeight = 40;
+    const logoX = (pageWidth - logoWidth) / 2;
+    pdfDoc.addImage(wuaLogo, 'PNG', logoX, yPosition, logoWidth, logoHeight);
+    yPosition += logoHeight + 10;
+    
     // Add header
-    pdfDoc.setFontSize(16);
+    pdfDoc.setFontSize(20);
+    pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('Application Form for Admission', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 10;
-    pdfDoc.setFontSize(12);
+    pdfDoc.setFontSize(14);
     pdfDoc.text('into Postgraduate/Undergraduate Degree Programmes', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 20;
     
     // Add application details
     pdfDoc.setFontSize(10);
+    pdfDoc.setFont(undefined, 'normal');
     pdfDoc.text(`Application No: ${selectedApplication.referenceNumber}`, 20, yPosition);
     yPosition += 5;
     pdfDoc.text(`Year of Application: ${new Date(selectedApplication.createdAt).getFullYear()}`, 20, yPosition);
     yPosition += 15;
     
     // Add programme details
+    pdfDoc.setFontSize(14);
+    pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('1. Programme Details', 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Starting Semester: ${selectedApplication.startingSemester}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Programme: ${selectedApplication.fullApplication.programme}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Program Type: ${selectedApplication.fullApplication.program_type}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Preferred Session: ${selectedApplication.fullApplication.preferred_session}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Region/Campus: ${selectedApplication.satelliteCampus}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Year of Commencement: ${selectedApplication.fullApplication.year_of_commencement}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`WUA Discovery Method: ${selectedApplication.fullApplication.wua_discovery_method}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Previous Registration: ${selectedApplication.fullApplication.previous_registration}`, 20, yPosition);
+    yPosition += 8;
+    
+    // Programme details in two columns
+    const leftMargin = 20;
+    const rightMargin = pageWidth / 2 + 10;
+    const lineHeight = 5;
+    
+    pdfDoc.setFontSize(10);
+    pdfDoc.setFont(undefined, 'normal');
+    pdfDoc.text(`Starting Semester: ${selectedApplication.startingSemester}`, leftMargin, yPosition);
+    pdfDoc.text(`Programme: ${selectedApplication.fullApplication.programme}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Program Type: ${selectedApplication.fullApplication.program_type}`, leftMargin, yPosition);
+    pdfDoc.text(`Preferred Session: ${selectedApplication.fullApplication.preferred_session}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Region/Campus: ${selectedApplication.satelliteCampus}`, leftMargin, yPosition);
+    pdfDoc.text(`Year of Commencement: ${selectedApplication.fullApplication.year_of_commencement}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`WUA Discovery Method: ${selectedApplication.fullApplication.wua_discovery_method}`, leftMargin, yPosition);
+    pdfDoc.text(`Previous Registration: ${selectedApplication.fullApplication.previous_registration}`, rightMargin, yPosition);
     yPosition += 15;
     
     // Add personal details
+    pdfDoc.setFontSize(14);
+    pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('2. Personal Information', 20, yPosition);
-    yPosition += 5;
+    yPosition += 8;
+    
+    // Personal details in two columns
+    pdfDoc.setFontSize(10);
+    pdfDoc.setFont(undefined, 'normal');
     const personalDetails = selectedApplication.fullApplication.personalDetails;
-    pdfDoc.text(`Title: ${personalDetails.title}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Full Name: ${personalDetails.first_names} ${personalDetails.surname}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Marital Status: ${personalDetails.marital_status}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Maiden Name: ${personalDetails.maiden_name || 'N/A'}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`National ID: ${personalDetails.national_id}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Passport Number: ${personalDetails.passport_number || 'N/A'}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Date of Birth: ${new Date(personalDetails.date_of_birth).toLocaleDateString()}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Place of Birth: ${personalDetails.place_of_birth}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Gender: ${personalDetails.gender}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Citizenship: ${personalDetails.citizenship}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Nationality: ${personalDetails.nationality}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Residential Address: ${personalDetails.residential_address}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Postal Address: ${personalDetails.postal_address}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`City: ${personalDetails.city}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Country: ${personalDetails.country}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Phone: ${personalDetails.phone}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Email: ${personalDetails.email}`, 20, yPosition);
+    
+    pdfDoc.text(`Title: ${personalDetails.title}`, leftMargin, yPosition);
+    pdfDoc.text(`Full Name: ${personalDetails.first_names} ${personalDetails.surname}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Marital Status: ${personalDetails.marital_status}`, leftMargin, yPosition);
+    pdfDoc.text(`Maiden Name: ${personalDetails.maiden_name || 'N/A'}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`National ID: ${personalDetails.national_id}`, leftMargin, yPosition);
+    pdfDoc.text(`Passport Number: ${personalDetails.passport_number || 'N/A'}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Date of Birth: ${new Date(personalDetails.date_of_birth).toLocaleDateString()}`, leftMargin, yPosition);
+    pdfDoc.text(`Place of Birth: ${personalDetails.place_of_birth}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Gender: ${personalDetails.gender}`, leftMargin, yPosition);
+    pdfDoc.text(`Citizenship: ${personalDetails.citizenship}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Nationality: ${personalDetails.nationality}`, leftMargin, yPosition);
+    pdfDoc.text(`City: ${personalDetails.city}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Residential Address: ${personalDetails.residential_address}`, leftMargin, yPosition);
+    pdfDoc.text(`Postal Address: ${personalDetails.postal_address}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Phone: ${personalDetails.phone}`, leftMargin, yPosition);
+    pdfDoc.text(`Email: ${personalDetails.email}`, rightMargin, yPosition);
     yPosition += 15;
     
     // Add Next of Kin details
+    pdfDoc.setFontSize(14);
+    pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('3. Next of Kin Information', 20, yPosition);
-    yPosition += 5;
+    yPosition += 8;
+    
+    // Next of Kin details in two columns
+    pdfDoc.setFontSize(10);
+    pdfDoc.setFont(undefined, 'normal');
     const nextOfKin = selectedApplication.fullApplication.nextOfKin;
-    pdfDoc.text(`Full Name: ${nextOfKin.first_name} ${nextOfKin.last_name}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Relationship: ${nextOfKin.relationship}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Contact Address: ${nextOfKin.contact_address}`, 20, yPosition);
-    yPosition += 5;
-    pdfDoc.text(`Contact Telephone: ${nextOfKin.contact_tel}`, 20, yPosition);
+    
+    pdfDoc.text(`Full Name: ${nextOfKin.first_name} ${nextOfKin.last_name}`, leftMargin, yPosition);
+    pdfDoc.text(`Relationship: ${nextOfKin.relationship}`, rightMargin, yPosition);
+    yPosition += lineHeight;
+    
+    pdfDoc.text(`Contact Address: ${nextOfKin.contact_address}`, leftMargin, yPosition);
+    pdfDoc.text(`Contact Telephone: ${nextOfKin.contact_tel}`, rightMargin, yPosition);
     yPosition += 15;
     
     // Add Disabilities information
+    pdfDoc.setFontSize(14);
+    pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('4. Special Needs Information', 20, yPosition);
-    yPosition += 5;
+    yPosition += 8;
+    
+    pdfDoc.setFontSize(10);
+    pdfDoc.setFont(undefined, 'normal');
     const disabilities = selectedApplication.fullApplication.disabilities[0];
-    pdfDoc.text(`Has Disability: ${disabilities.has_disability}`, 20, yPosition);
-    yPosition += 5;
+    pdfDoc.text(`Has Disability: ${disabilities.has_disability}`, leftMargin, yPosition);
+    yPosition += lineHeight;
+    
     if (disabilities.has_disability === 'Yes') {
-      pdfDoc.text('Disability Types:', 20, yPosition);
-      yPosition += 5;
-      if (disabilities.blindness) pdfDoc.text('- Blindness', 25, yPosition), yPosition += 5;
-      if (disabilities.cerebral_palsy) pdfDoc.text('- Cerebral Palsy', 25, yPosition), yPosition += 5;
-      if (disabilities.deafness) pdfDoc.text('- Deafness', 25, yPosition), yPosition += 5;
-      if (disabilities.speech_impairment) pdfDoc.text('- Speech Impairment', 25, yPosition), yPosition += 5;
-      if (disabilities.other) pdfDoc.text(`- Other: ${disabilities.other}`, 25, yPosition), yPosition += 5;
-      if (disabilities.extra_adaptations) pdfDoc.text(`Extra Adaptations: ${disabilities.extra_adaptations}`, 20, yPosition), yPosition += 5;
+      pdfDoc.text('Disability Types:', leftMargin, yPosition);
+      yPosition += lineHeight;
+      if (disabilities.blindness) pdfDoc.text('- Blindness', leftMargin + 5, yPosition), yPosition += lineHeight;
+      if (disabilities.cerebral_palsy) pdfDoc.text('- Cerebral Palsy', leftMargin + 5, yPosition), yPosition += lineHeight;
+      if (disabilities.deafness) pdfDoc.text('- Deafness', leftMargin + 5, yPosition), yPosition += lineHeight;
+      if (disabilities.speech_impairment) pdfDoc.text('- Speech Impairment', leftMargin + 5, yPosition), yPosition += lineHeight;
+      if (disabilities.other) pdfDoc.text(`- Other: ${disabilities.other}`, leftMargin + 5, yPosition), yPosition += lineHeight;
+      if (disabilities.extra_adaptations) pdfDoc.text(`Extra Adaptations: ${disabilities.extra_adaptations}`, leftMargin, yPosition), yPosition += lineHeight;
     }
     yPosition += 10;
     
     // Add education details
+    pdfDoc.setFontSize(14);
+    pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('5. Educational Qualifications', 20, yPosition);
     yPosition += 10;
     
     // Create tables for each education level
+    pdfDoc.setFontSize(10);
+    pdfDoc.setFont(undefined, 'normal');
     selectedApplication.fullApplication.educationDetails.forEach(edu => {
+      pdfDoc.setFont(undefined, 'bold');
       pdfDoc.text(`${edu.qualification_type} (${edu.examination_board})`, 20, yPosition);
       yPosition += 5;
       
@@ -402,26 +442,17 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
         head: [['Subject', 'Grade', 'Year']],
         body: educationData,
         theme: 'grid',
-        headStyles: { fillColor: [19, 162, 21] },
+        headStyles: { fillColor: [19, 162, 21], textColor: [255, 255, 255], fontStyle: 'bold' },
         margin: { left: 20 }
       });
       
       yPosition = (pdfDoc as any).lastAutoTable.finalY + 10;
     });
     
-    // Add documents list
-    pdfDoc.text('6. Submitted Documents', 20, yPosition);
-    yPosition += 5;
-    selectedApplication.fullApplication.documents.forEach(document => {
-      const docType = document.document_type.replace(/_/g, ' ').toUpperCase();
-      const uploadDate = new Date(document.uploaded_at).toLocaleDateString();
-      pdfDoc.text(`- ${docType} (Uploaded: ${uploadDate})`, 20, yPosition);
-      yPosition += 5;
-    });
-    
     // Add footer
     const pageHeight = pdfDoc.internal.pageSize.getHeight();
     pdfDoc.setFontSize(8);
+    pdfDoc.setFont(undefined, 'normal');
     pdfDoc.text('549 Arcturus Road, Harare', pageWidth / 2, pageHeight - 20, { align: 'center' });
     pdfDoc.text('Website : www.apply.wua.ac.zw, E-mail : webmaster@wua.ac.zw', pageWidth / 2, pageHeight - 15, { align: 'center' });
     
