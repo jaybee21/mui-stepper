@@ -308,6 +308,12 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.text('1. Programme Details', 20, yPosition);
     yPosition += 8;
     
+    // Draw underline for Programme Details
+    pdfDoc.setDrawColor(0, 0, 0);
+    pdfDoc.setLineWidth(0.5);
+    pdfDoc.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 5;
+    
     // Programme details in two columns
     const leftMargin = 20;
     const rightMargin = pageWidth / 2 + 10;
@@ -336,6 +342,10 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('2. Personal Information', 20, yPosition);
     yPosition += 8;
+    
+    // Draw underline for Personal Information
+    pdfDoc.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 5;
     
     // Personal details in two columns
     pdfDoc.setFontSize(10);
@@ -380,6 +390,10 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.text('3. Next of Kin Information', 20, yPosition);
     yPosition += 8;
     
+    // Draw underline for Next of Kin Information
+    pdfDoc.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 5;
+    
     // Next of Kin details in two columns
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
@@ -399,6 +413,10 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.text('4. Special Needs Information', 20, yPosition);
     yPosition += 8;
     
+    // Draw underline for Special Needs Information
+    pdfDoc.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 5;
+    
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
     const disabilities = selectedApplication.fullApplication.disabilities[0];
@@ -415,20 +433,38 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       if (disabilities.other) pdfDoc.text(`- Other: ${disabilities.other}`, leftMargin + 5, yPosition), yPosition += lineHeight;
       if (disabilities.extra_adaptations) pdfDoc.text(`Extra Adaptations: ${disabilities.extra_adaptations}`, leftMargin, yPosition), yPosition += lineHeight;
     }
-    yPosition += 10;
+    
+    // Add footer to first page
+    const pageHeight = pdfDoc.internal.pageSize.getHeight();
+    pdfDoc.setFontSize(8);
+    pdfDoc.setFont(undefined, 'normal');
+    pdfDoc.text('549 Arcturus Road, Harare', pageWidth / 2, pageHeight - 20, { align: 'center' });
+    pdfDoc.text('Website : www.apply.wua.ac.zw, E-mail : webmaster@wua.ac.zw', pageWidth / 2, pageHeight - 15, { align: 'center' });
+    
+    // Add new page for Educational Qualifications
+    pdfDoc.addPage();
+    yPosition = 20;
     
     // Add education details
     pdfDoc.setFontSize(14);
     pdfDoc.setFont(undefined, 'bold');
     pdfDoc.text('5. Educational Qualifications', 20, yPosition);
-    yPosition += 10;
+    yPosition += 8;
+    
+    // Draw underline for Educational Qualifications
+    pdfDoc.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 5;
     
     // Create tables for each education level
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
     selectedApplication.fullApplication.educationDetails.forEach(edu => {
+      // Add qualification level label
       pdfDoc.setFont(undefined, 'bold');
-      pdfDoc.text(`${edu.qualification_type} (${edu.examination_board})`, 20, yPosition);
+      const qualificationLabel = edu.qualification_type.toLowerCase().includes('level') 
+        ? edu.qualification_type 
+        : `${edu.qualification_type} Level`;
+      pdfDoc.text(`${qualificationLabel} (${edu.examination_board})`, 20, yPosition);
       yPosition += 5;
       
       const educationData = edu.subjects.map(subject => [
@@ -449,8 +485,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       yPosition = (pdfDoc as any).lastAutoTable.finalY + 10;
     });
     
-    // Add footer
-    const pageHeight = pdfDoc.internal.pageSize.getHeight();
+    // Add footer to second page
     pdfDoc.setFontSize(8);
     pdfDoc.setFont(undefined, 'normal');
     pdfDoc.text('549 Arcturus Road, Harare', pageWidth / 2, pageHeight - 20, { align: 'center' });
