@@ -125,7 +125,7 @@ const StepThree: React.FC<StepThreeProps> = ({ onNext, onBack }) => {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/next-of-kin`, {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/next-of-kin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

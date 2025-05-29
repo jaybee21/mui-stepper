@@ -192,7 +192,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ onNext, onBack }) => {
         formData.append('proposal', proposal);
       }
 
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/documents`, {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/documents`, {
         method: 'POST',
         body: formData,
       });

@@ -97,7 +97,7 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
 
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3000/dev/api/v1/applications', {
+      const response = await fetch('https://apply.wua.ac.zw/dev/api/v1/applications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
 
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3000/dev/api/v1/applications/resume', {
+      const response = await fetch('https://apply.wua.ac.zw/dev/api/v1/applications/resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

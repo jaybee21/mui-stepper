@@ -131,7 +131,7 @@ const StepSix: React.FC<StepSixProps> = ({ onNext, onBack }) => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/work-experience`, {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/work-experience`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

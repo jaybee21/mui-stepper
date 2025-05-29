@@ -41,7 +41,7 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
   const handleLogin = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('http://localhost:3000/dev/api/v1/users/login', {
+      const response = await fetch('https://apply.wua.ac.zw/dev/api/v1/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

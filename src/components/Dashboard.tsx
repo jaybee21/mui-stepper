@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -38,7 +38,7 @@ import {
   DialogActions,
   TextField,
   CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Menu as MenuIcon,
   Person as PersonIcon,
@@ -56,7 +56,7 @@ import {
   Logout as LogoutIcon,
   LockReset as LockResetIcon,
   Person as ProfileIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   BarChart,
   Bar,
@@ -71,34 +71,40 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
-import WaitingAcceptance from './WaitingAcceptance';
-import WaitingPin from './WaitingPin';
-import WithPin from './WithPin';
-import ProspectiveStudents from './ProspectiveStudents';
-import { removeAuthToken, decodeToken, fetchUserProfile, updateUserProfile, resetPassword } from '../utils/auth';
-import { useNavigate } from 'react-router-dom';
-import { SelectChangeEvent } from '@mui/material';
+} from "recharts";
+import WaitingAcceptance from "./WaitingAcceptance";
+import WaitingPin from "./WaitingPin";
+import WithPin from "./WithPin";
+import ProspectiveStudents from "./ProspectiveStudents";
+import {
+  removeAuthToken,
+  decodeToken,
+  fetchUserProfile,
+  updateUserProfile,
+  resetPassword,
+} from "../utils/auth";
+import { useNavigate } from "react-router-dom";
+import { SelectChangeEvent } from "@mui/material";
 
 // Sample data
 const monthlyStats = [
-  { month: 'Jan', applications: 65, accepted: 40, rejected: 25 },
-  { month: 'Feb', applications: 85, accepted: 55, rejected: 30 },
-  { month: 'Mar', applications: 95, accepted: 60, rejected: 35 },
-  { month: 'Apr', applications: 75, accepted: 45, rejected: 30 },
-  { month: 'May', applications: 90, accepted: 58, rejected: 32 },
-  { month: 'Jun', applications: 100, accepted: 65, rejected: 35 },
+  { month: "Jan", applications: 65, accepted: 40, rejected: 25 },
+  { month: "Feb", applications: 85, accepted: 55, rejected: 30 },
+  { month: "Mar", applications: 95, accepted: 60, rejected: 35 },
+  { month: "Apr", applications: 75, accepted: 45, rejected: 30 },
+  { month: "May", applications: 90, accepted: 58, rejected: 32 },
+  { month: "Jun", applications: 100, accepted: 65, rejected: 35 },
 ];
 
 const programStats = [
-  { name: 'Business Admin', value: 35 },
-  { name: 'Computer Science', value: 25 },
-  { name: 'Engineering', value: 20 },
-  { name: 'Medicine', value: 15 },
-  { name: 'Others', value: 5 },
+  { name: "Business Admin", value: 35 },
+  { name: "Computer Science", value: 25 },
+  { name: "Engineering", value: 20 },
+  { name: "Medicine", value: 15 },
+  { name: "Others", value: 5 },
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
 const stats = {
   totalApplicants: 150,
@@ -112,95 +118,97 @@ const stats = {
 
 // Tab IDs for navigation
 enum TabId {
-  DASHBOARD = 'dashboard',
-  WAITING_ACCEPTANCE = 'waitingAcceptance',
-  WAITING_PIN = 'waitingPin',
-  WITH_PIN = 'withPin',
-  PROSPECTIVE = 'prospective',
+  DASHBOARD = "dashboard",
+  WAITING_ACCEPTANCE = "waitingAcceptance",
+  WAITING_PIN = "waitingPin",
+  WITH_PIN = "withPin",
+  PROSPECTIVE = "prospective",
 }
 
 // Sample data for waiting acceptance table
 const waitingAcceptanceData = [
   {
     id: 1,
-    applicationNumber: 'APP-2023-001',
-    status: 'Pending Review',
-    updatedOn: '2023-06-15',
-    submittedOn: '2023-06-10',
+    applicationNumber: "APP-2023-001",
+    status: "Pending Review",
+    updatedOn: "2023-06-15",
+    submittedOn: "2023-06-10",
   },
   {
     id: 2,
-    applicationNumber: 'APP-2023-002',
-    status: 'Documents Verification',
-    updatedOn: '2023-06-14',
-    submittedOn: '2023-06-08',
+    applicationNumber: "APP-2023-002",
+    status: "Documents Verification",
+    updatedOn: "2023-06-14",
+    submittedOn: "2023-06-08",
   },
   {
     id: 3,
-    applicationNumber: 'APP-2023-003',
-    status: 'Interview Scheduled',
-    updatedOn: '2023-06-16',
-    submittedOn: '2023-06-05',
+    applicationNumber: "APP-2023-003",
+    status: "Interview Scheduled",
+    updatedOn: "2023-06-16",
+    submittedOn: "2023-06-05",
   },
   {
     id: 4,
-    applicationNumber: 'APP-2023-004',
-    status: 'Pending Review',
-    updatedOn: '2023-06-13',
-    submittedOn: '2023-06-11',
+    applicationNumber: "APP-2023-004",
+    status: "Pending Review",
+    updatedOn: "2023-06-13",
+    submittedOn: "2023-06-11",
   },
   {
     id: 5,
-    applicationNumber: 'APP-2023-005',
-    status: 'Documents Verification',
-    updatedOn: '2023-06-12',
-    submittedOn: '2023-06-07',
+    applicationNumber: "APP-2023-005",
+    status: "Documents Verification",
+    updatedOn: "2023-06-12",
+    submittedOn: "2023-06-07",
   },
   {
     id: 6,
-    applicationNumber: 'APP-2023-006',
-    status: 'Interview Scheduled',
-    updatedOn: '2023-06-11',
-    submittedOn: '2023-06-01',
+    applicationNumber: "APP-2023-006",
+    status: "Interview Scheduled",
+    updatedOn: "2023-06-11",
+    submittedOn: "2023-06-01",
   },
   {
     id: 7,
-    applicationNumber: 'APP-2023-007',
-    status: 'Pending Review',
-    updatedOn: '2023-06-10',
-    submittedOn: '2023-06-03',
+    applicationNumber: "APP-2023-007",
+    status: "Pending Review",
+    updatedOn: "2023-06-10",
+    submittedOn: "2023-06-03",
   },
 ];
 
 const Dashboard: FC = () => {
   const [open, setOpen] = React.useState(true);
-  const [timeFilter, setTimeFilter] = useState('day');
+  const [timeFilter, setTimeFilter] = useState("day");
   const [activeTab, setActiveTab] = useState<TabId>(TabId.DASHBOARD);
   const theme = useTheme();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const [anchorElSettings, setAnchorElSettings] = useState<null | HTMLElement>(null);
+  const [anchorElSettings, setAnchorElSettings] = useState<null | HTMLElement>(
+    null
+  );
   const navigate = useNavigate();
   const [openProfileDialog, setOpenProfileDialog] = useState(false);
   const [profileData, setProfileData] = useState({
-    username: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    mobileNumber: '',
-    idNumber: '',
-    department: '',
-    role: '',
-    isFirstLogin: false
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobileNumber: "",
+    idNumber: "",
+    department: "",
+    role: "",
+    isFirstLogin: false,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({
-    username: '',
-    newPassword: '',
-    confirmPassword: '',
+    username: "",
+    newPassword: "",
+    confirmPassword: "",
   });
-  const [passwordError, setPasswordError] = useState('');
+  const [passwordError, setPasswordError] = useState("");
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
@@ -208,31 +216,34 @@ const Dashboard: FC = () => {
   const fetchDashboardData = async () => {
     try {
       setIsLoadingDashboard(true);
-      const token = sessionStorage.getItem('authToken');
+      const token = sessionStorage.getItem("authToken");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
-      console.log('Fetching dashboard data with filter:', timeFilter); // Debug log
+      console.log("Fetching dashboard data with filter:", timeFilter); // Debug log
 
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/dashboard?filter=${timeFilter}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `https://apply.wua.ac.zw/dev/api/v1/applications/dashboard?filter=${timeFilter}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch dashboard data');
+        throw new Error("Failed to fetch dashboard data");
       }
 
       const data = await response.json();
-      console.log('Dashboard data received:', data); // Debug log
+      console.log("Dashboard data received:", data); // Debug log
       setDashboardData(data);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError('Failed to load dashboard data');
+      console.error("Error fetching dashboard data:", error);
+      setError("Failed to load dashboard data");
     } finally {
       setIsLoadingDashboard(false);
     }
@@ -256,87 +267,94 @@ const Dashboard: FC = () => {
   };
 
   const menuItems = [
-    { 
-      id: TabId.DASHBOARD, 
-      text: 'Dashboard Overview', 
-      icon: <DashboardIcon />, 
-      count: stats.totalApplicants 
+    {
+      id: TabId.DASHBOARD,
+      text: "Dashboard Overview",
+      icon: <DashboardIcon />,
+      count: stats.totalApplicants,
     },
-    { 
-      id: TabId.WAITING_ACCEPTANCE, 
-      text: 'Waiting Acceptance', 
-      icon: <PeopleIcon />, 
-      count: stats.waitingAcceptance 
+    {
+      id: TabId.WAITING_ACCEPTANCE,
+      text: "Waiting Acceptance",
+      icon: <PeopleIcon />,
+      count: stats.waitingAcceptance,
     },
-    { 
-      id: TabId.WAITING_PIN, 
-      text: 'Waiting for PIN', 
-      icon: <VpnKeyIcon />, 
-      count: stats.waitingPin 
+    {
+      id: TabId.WAITING_PIN,
+      text: "Waiting for PIN",
+      icon: <VpnKeyIcon />,
+      count: stats.waitingPin,
     },
-    { 
-      id: TabId.WITH_PIN, 
-      text: 'Applicants with PIN', 
-      icon: <PersonIcon />, 
-      count: stats.withPin 
+    {
+      id: TabId.WITH_PIN,
+      text: "Applicants with PIN",
+      icon: <PersonIcon />,
+      count: stats.withPin,
     },
-    { 
-      id: TabId.PROSPECTIVE, 
-      text: 'Prospective Students', 
-      icon: <SchoolIcon />, 
-      count: stats.prospectiveStudents 
+    {
+      id: TabId.PROSPECTIVE,
+      text: "Prospective Students",
+      icon: <SchoolIcon />,
+      count: stats.prospectiveStudents,
     },
   ];
 
-  const StatCard = ({ title, value, icon, trend = null }: { 
-    title: string; 
-    value: number; 
+  const StatCard = ({
+    title,
+    value,
+    icon,
+    trend = null,
+  }: {
+    title: string;
+    value: number;
     icon: React.ReactNode;
     trend?: { value: number; isPositive: boolean } | null;
   }) => (
     <Card
       sx={{
         p: 3,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: 'background.paper',
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "background.paper",
         borderRadius: 2,
-        position: 'relative',
-        overflow: 'hidden',
-        '&:hover': {
+        position: "relative",
+        overflow: "hidden",
+        "&:hover": {
           boxShadow: theme.shadows[10],
-          transform: 'translateY(-4px)',
-          transition: 'all 0.3s',
+          transform: "translateY(-4px)",
+          transition: "all 0.3s",
         },
       }}
     >
-      <Box sx={{ 
-        position: 'absolute', 
-        top: 0, 
-        right: 0, 
-        p: 1,
-        color: '#13A215',
-      }}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          p: 1,
+          color: "#13A215",
+        }}
+      >
         {icon}
       </Box>
-      <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+      <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>
         {title}
       </Typography>
-      <Typography variant="h3" sx={{ mb: 2, color: '#13A215' }}>
+      <Typography variant="h3" sx={{ mb: 2, color: "#13A215" }}>
         {value}
       </Typography>
       {trend && (
         <Stack direction="row" alignItems="center" spacing={1}>
-          <TrendingUpIcon 
-            sx={{ 
-              color: trend.isPositive ? 'success.main' : 'error.main',
-              transform: trend.isPositive ? 'none' : 'rotate(180deg)',
-            }} 
+          <TrendingUpIcon
+            sx={{
+              color: trend.isPositive ? "success.main" : "error.main",
+              transform: trend.isPositive ? "none" : "rotate(180deg)",
+            }}
           />
-          <Typography 
-            variant="body2" 
-            sx={{ color: trend.isPositive ? 'success.main' : 'error.main' }}
+          <Typography
+            variant="body2"
+            sx={{ color: trend.isPositive ? "success.main" : "error.main" }}
           >
             {trend.value}% from last month
           </Typography>
@@ -352,7 +370,7 @@ const Dashboard: FC = () => {
       <Box sx={{ mb: 4 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={8}>
-            <Typography variant="h4" sx={{ color: '#333', mb: 2 }}>
+            <Typography variant="h4" sx={{ color: "#333", mb: 2 }}>
               Application Analytics
             </Typography>
           </Grid>
@@ -374,11 +392,11 @@ const Dashboard: FC = () => {
       </Box>
 
       {isLoadingDashboard ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Typography color="error" sx={{ textAlign: 'center', p: 3 }}>
+        <Typography color="error" sx={{ textAlign: "center", p: 3 }}>
           {error}
         </Typography>
       ) : dashboardData ? (
@@ -386,46 +404,52 @@ const Dashboard: FC = () => {
           {/* Stats Cards */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
             <Grid item xs={12} sm={6} md={3}>
-              <StatCard 
-                title="Total Applications" 
+              <StatCard
+                title="Total Applications"
                 value={dashboardData.summary.totalApplications.count}
                 icon={<AssessmentIcon />}
-                trend={{ 
+                trend={{
                   value: dashboardData.summary.totalApplications.change,
-                  isPositive: !dashboardData.summary.totalApplications.change.includes('-')
+                  isPositive:
+                    !dashboardData.summary.totalApplications.change.includes(
+                      "-"
+                    ),
                 }}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <StatCard 
-                title="Accepted" 
+              <StatCard
+                title="Accepted"
                 value={dashboardData.summary.accepted.count}
                 icon={<CheckCircleIcon />}
-                trend={{ 
+                trend={{
                   value: dashboardData.summary.accepted.change,
-                  isPositive: !dashboardData.summary.accepted.change.includes('-')
+                  isPositive:
+                    !dashboardData.summary.accepted.change.includes("-"),
                 }}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <StatCard 
-                title="Pending" 
+              <StatCard
+                title="Pending"
                 value={dashboardData.summary.pending.count}
                 icon={<VpnKeyIcon />}
-                trend={{ 
+                trend={{
                   value: dashboardData.summary.pending.change,
-                  isPositive: !dashboardData.summary.pending.change.includes('-')
+                  isPositive:
+                    !dashboardData.summary.pending.change.includes("-"),
                 }}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <StatCard 
-                title="Rejected" 
+              <StatCard
+                title="Rejected"
                 value={dashboardData.summary.rejected.count}
                 icon={<CancelIcon />}
-                trend={{ 
+                trend={{
                   value: dashboardData.summary.rejected.change,
-                  isPositive: !dashboardData.summary.rejected.change.includes('-')
+                  isPositive:
+                    !dashboardData.summary.rejected.change.includes("-"),
                 }}
               />
             </Grid>
@@ -435,7 +459,7 @@ const Dashboard: FC = () => {
           <Grid container spacing={3}>
             {/* Application Trends */}
             <Grid item xs={12} md={8}>
-              <Card sx={{ p: 3, height: '100%' }}>
+              <Card sx={{ p: 3, height: "100%" }}>
                 <Typography variant="h6" sx={{ mb: 3 }}>
                   Application Trends
                 </Typography>
@@ -446,22 +470,22 @@ const Dashboard: FC = () => {
                     <YAxis />
                     <RechartsTooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="total" 
-                      stroke="#13A215" 
+                    <Line
+                      type="monotone"
+                      dataKey="total"
+                      stroke="#13A215"
                       strokeWidth={2}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="accepted" 
-                      stroke="#0088FE" 
+                    <Line
+                      type="monotone"
+                      dataKey="accepted"
+                      stroke="#0088FE"
                       strokeWidth={2}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="rejected" 
-                      stroke="#FF8042" 
+                    <Line
+                      type="monotone"
+                      dataKey="rejected"
+                      stroke="#FF8042"
                       strokeWidth={2}
                     />
                   </LineChart>
@@ -471,7 +495,7 @@ const Dashboard: FC = () => {
 
             {/* Program Distribution */}
             <Grid item xs={12} md={4}>
-              <Card sx={{ p: 3, height: '100%' }}>
+              <Card sx={{ p: 3, height: "100%" }}>
                 <Typography variant="h6" sx={{ mb: 3 }}>
                   Program Distribution
                 </Typography>
@@ -485,9 +509,14 @@ const Dashboard: FC = () => {
                       dataKey="total"
                       nameKey="programme"
                     >
-                      {dashboardData.programDistribution.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                      {dashboardData.programDistribution.map(
+                        (entry: any, index: number) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        )
+                      )}
                     </Pie>
                     <RechartsTooltip />
                     <Legend />
@@ -498,7 +527,7 @@ const Dashboard: FC = () => {
           </Grid>
         </>
       ) : (
-        <Typography variant="h6" sx={{ textAlign: 'center', p: 3 }}>
+        <Typography variant="h6" sx={{ textAlign: "center", p: 3 }}>
           No data available
         </Typography>
       )}
@@ -517,7 +546,9 @@ const Dashboard: FC = () => {
       case TabId.WITH_PIN:
         return <WithPin totalWithPin={stats.withPin} />;
       case TabId.PROSPECTIVE:
-        return <ProspectiveStudents totalProspective={stats.prospectiveStudents} />;
+        return (
+          <ProspectiveStudents totalProspective={stats.prospectiveStudents} />
+        );
       default:
         return <DashboardContent />;
     }
@@ -542,13 +573,13 @@ const Dashboard: FC = () => {
   const handleLogout = () => {
     removeAuthToken();
     handleCloseUserMenu();
-    window.location.href = '/admin';
+    window.location.href = "/admin";
   };
 
   const handlePasswordReset = () => {
     const decoded = decodeToken();
     if (decoded) {
-      setPasswordData(prev => ({ ...prev, username: decoded.username }));
+      setPasswordData((prev) => ({ ...prev, username: decoded.username }));
       setOpenPasswordDialog(true);
     }
     handleCloseSettingsMenu();
@@ -556,24 +587,24 @@ const Dashboard: FC = () => {
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setPasswordData(prev => ({
+    setPasswordData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user starts typing
-    setPasswordError('');
+    setPasswordError("");
   };
 
   const handlePasswordSubmit = async () => {
     // Validate passwords match
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError("Passwords do not match");
       return;
     }
 
     // Validate password length
     if (passwordData.newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters long');
+      setPasswordError("Password must be at least 6 characters long");
       return;
     }
 
@@ -583,14 +614,14 @@ const Dashboard: FC = () => {
       setOpenPasswordDialog(false);
       // Reset form
       setPasswordData({
-        username: '',
-        newPassword: '',
-        confirmPassword: '',
+        username: "",
+        newPassword: "",
+        confirmPassword: "",
       });
       // Show success message
-      alert('Password updated successfully');
+      alert("Password updated successfully");
     } catch (error) {
-      setPasswordError('Failed to update password');
+      setPasswordError("Failed to update password");
     } finally {
       setIsPasswordLoading(false);
     }
@@ -599,11 +630,11 @@ const Dashboard: FC = () => {
   const handleUpdateProfile = async () => {
     setOpenProfileDialog(true);
     handleCloseSettingsMenu();
-    
+
     try {
       const decoded = decodeToken();
       if (!decoded) {
-        setError('Invalid token');
+        setError("Invalid token");
         return;
       }
 
@@ -618,10 +649,10 @@ const Dashboard: FC = () => {
         idNumber: userData.idNumber,
         department: userData.department,
         role: userData.role,
-        isFirstLogin: Boolean(userData.isFirstLogin)
+        isFirstLogin: Boolean(userData.isFirstLogin),
       });
     } catch (error) {
-      setError('Failed to fetch profile data');
+      setError("Failed to fetch profile data");
     } finally {
       setIsLoading(false);
     }
@@ -629,9 +660,9 @@ const Dashboard: FC = () => {
 
   const handleProfileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -639,7 +670,7 @@ const Dashboard: FC = () => {
     try {
       const decoded = decodeToken();
       if (!decoded) {
-        setError('Invalid token');
+        setError("Invalid token");
         return;
       }
 
@@ -648,19 +679,19 @@ const Dashboard: FC = () => {
       setOpenProfileDialog(false);
       // Show success message
     } catch (error) {
-      setError('Failed to update profile');
+      setError("Failed to update profile");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <AppBar 
-        position="fixed" 
-        sx={{ 
+    <Box sx={{ display: "flex" }}>
+      <AppBar
+        position="fixed"
+        sx={{
           zIndex: theme.zIndex.drawer + 1,
-          bgcolor: '#13A215',
+          bgcolor: "#13A215",
         }}
       >
         <Toolbar>
@@ -680,22 +711,25 @@ const Dashboard: FC = () => {
           {/* Settings Menu */}
           <Box sx={{ mr: 2 }}>
             <Tooltip title="Settings">
-              <IconButton onClick={handleOpenSettingsMenu} sx={{ color: 'white' }}>
+              <IconButton
+                onClick={handleOpenSettingsMenu}
+                sx={{ color: "white" }}
+              >
                 <SettingsIcon />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: '45px' }}
+              sx={{ mt: "45px" }}
               id="settings-menu"
               anchorEl={anchorElSettings}
               anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               keepMounted
               transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               open={Boolean(anchorElSettings)}
               onClose={handleCloseSettingsMenu}
@@ -719,10 +753,10 @@ const Dashboard: FC = () => {
           <Box>
             <Tooltip title="Account settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar 
-                  sx={{ 
-                    bgcolor: 'white',
-                    color: '#13A215',
+                <Avatar
+                  sx={{
+                    bgcolor: "white",
+                    color: "#13A215",
                   }}
                 >
                   <AccountCircleIcon />
@@ -730,23 +764,26 @@ const Dashboard: FC = () => {
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: '45px' }}
+              sx={{ mt: "45px" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               keepMounted
               transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
               <MenuItem disabled>
-                <Typography textAlign="center" sx={{ fontSize: '0.9rem', color: 'text.secondary' }}>
+                <Typography
+                  textAlign="center"
+                  sx={{ fontSize: "0.9rem", color: "text.secondary" }}
+                >
                   Logged in as Admin
                 </Typography>
               </MenuItem>
@@ -767,50 +804,55 @@ const Dashboard: FC = () => {
         sx={{
           width: 240,
           flexShrink: 0,
-          '& .MuiDrawer-paper': {
+          "& .MuiDrawer-paper": {
             width: 240,
-            boxSizing: 'border-box',
-            ...(open ? {} : {
-              width: theme.spacing(7),
-              overflowX: 'hidden',
-            }),
+            boxSizing: "border-box",
+            ...(open
+              ? {}
+              : {
+                  width: theme.spacing(7),
+                  overflowX: "hidden",
+                }),
           },
         }}
       >
         <Toolbar />
-        <Box sx={{ overflow: 'auto', mt: 2 }}>
+        <Box sx={{ overflow: "auto", mt: 2 }}>
           <List>
             {menuItems.map((item) => (
-              <ListItemButton 
+              <ListItemButton
                 key={item.id}
                 selected={activeTab === item.id}
                 onClick={() => handleTabChange(item.id)}
                 sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(19, 162, 21, 0.1)',
-                    borderRight: '4px solid #13A215',
-                    '&:hover': {
-                      backgroundColor: 'rgba(19, 162, 21, 0.2)',
-                    }
+                  "&.Mui-selected": {
+                    backgroundColor: "rgba(19, 162, 21, 0.1)",
+                    borderRight: "4px solid #13A215",
+                    "&:hover": {
+                      backgroundColor: "rgba(19, 162, 21, 0.2)",
+                    },
                   },
-                  '&:hover': {
-                    backgroundColor: 'rgba(19, 162, 21, 0.05)',
-                  }
+                  "&:hover": {
+                    backgroundColor: "rgba(19, 162, 21, 0.05)",
+                  },
                 }}
               >
-                <ListItemIcon sx={{ 
-                  color: activeTab === item.id ? '#13A215' : 'text.secondary',
-                  minWidth: 40,
-                }}>
+                <ListItemIcon
+                  sx={{
+                    color: activeTab === item.id ? "#13A215" : "text.secondary",
+                    minWidth: 40,
+                  }}
+                >
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary={
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
+                    <Typography
+                      variant="body1"
+                      sx={{
                         fontWeight: activeTab === item.id ? 600 : 400,
-                        color: activeTab === item.id ? '#13A215' : 'text.primary',
+                        color:
+                          activeTab === item.id ? "#13A215" : "text.primary",
                       }}
                     >
                       {item.text}
@@ -830,8 +872,8 @@ const Dashboard: FC = () => {
       </Box>
 
       {/* Add Profile Update Dialog */}
-      <Dialog 
-        open={openProfileDialog} 
+      <Dialog
+        open={openProfileDialog}
         onClose={() => setOpenProfileDialog(false)}
         maxWidth="sm"
         fullWidth
@@ -914,35 +956,35 @@ const Dashboard: FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setOpenProfileDialog(false)}
             disabled={isLoading}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             variant="contained"
             onClick={handleProfileSubmit}
             disabled={isLoading}
             sx={{
-              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+              background: "linear-gradient(45deg, #13A215, #1DBDD0)",
+              "&:hover": {
+                background: "linear-gradient(45deg, #0B8A0D, #189AAD)",
               },
             }}
           >
             {isLoading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              'Update Profile'
+              "Update Profile"
             )}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Add Password Reset Dialog */}
-      <Dialog 
-        open={openPasswordDialog} 
+      <Dialog
+        open={openPasswordDialog}
         onClose={() => setOpenPasswordDialog(false)}
         maxWidth="sm"
         fullWidth
@@ -986,27 +1028,27 @@ const Dashboard: FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setOpenPasswordDialog(false)}
             disabled={isPasswordLoading}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             variant="contained"
             onClick={handlePasswordSubmit}
             disabled={isPasswordLoading}
             sx={{
-              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
+              background: "linear-gradient(45deg, #13A215, #1DBDD0)",
+              "&:hover": {
+                background: "linear-gradient(45deg, #0B8A0D, #189AAD)",
               },
             }}
           >
             {isPasswordLoading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              'Reset Password'
+              "Reset Password"
             )}
           </Button>
         </DialogActions>
@@ -1015,4 +1057,4 @@ const Dashboard: FC = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

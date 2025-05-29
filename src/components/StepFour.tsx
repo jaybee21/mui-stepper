@@ -134,7 +134,7 @@ const StepFour: React.FC<StepFourProps> = ({ onNext, onBack }) => {
         extraAdaptations: extraAdaptations
       };
 
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/disabilities`, {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/disabilities`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

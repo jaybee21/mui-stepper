@@ -56,7 +56,7 @@ export const decodeToken = (): DecodedToken | null => {
 
 export const fetchUserProfile = async (userId: number) => {
   const token = getAuthToken();
-  const response = await fetch(`http://localhost:3000/dev/api/v1/users/id/${userId}`, {
+  const response = await fetch(`https://apply.wua.ac.zw/dev/api/api/v1/users/id/${userId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -67,7 +67,7 @@ export const fetchUserProfile = async (userId: number) => {
 
 export const updateUserProfile = async (userId: number, data: any) => {
   const token = getAuthToken();
-  const response = await fetch(`http://localhost:3000/dev/api/v1/users/${userId}`, {
+  const response = await fetch(`https://apply.wua.ac.zw/dev/api/api/v1/users/${userId}`, {
     method: 'PATCH',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -81,7 +81,7 @@ export const updateUserProfile = async (userId: number, data: any) => {
 
 export const resetPassword = async (username: string, newPassword: string) => {
   const token = getAuthToken();
-  const response = await fetch(`http://localhost:3000/dev/api/v1/users/reset-password`, {
+  const response = await fetch(`https://apply.wua.ac.zw/dev/api/api/v1/users/reset-password`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,

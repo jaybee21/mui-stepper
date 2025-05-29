@@ -217,7 +217,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
       const method = hasApplicationData ? 'PUT' : 'POST';
       const successMessage = hasApplicationData ? 'Personal details updated successfully!' : 'Personal details created successfully!';
 
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/personal-details`, {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/personal-details`, {
         method,
         headers: {
           'Content-Type': 'application/json',

@@ -166,7 +166,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       });
 
       const queryString = queryParams.toString();
-      const url = `http://localhost:3000/dev/api/v1/applications${queryString ? `?${queryString}` : ''}`;
+      const url = `https://apply.wua.ac.zw/dev/api/v1/applications${queryString ? `?${queryString}` : ''}`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -201,7 +201,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
 
   const handleViewDetails = async (referenceNumber: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/full-details`);
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/full-details`);
       const data = await response.json();
       setSelectedApplication(data);
       setOpenDialog(true);
@@ -216,7 +216,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       const fileName = filePath.split('\\').pop() || documentType;
       
       // Make a request to download the file using the new API endpoint
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/download?path=${encodeURIComponent(fileName)}`);
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/download?path=${encodeURIComponent(fileName)}`);
       
       if (!response.ok) {
         throw new Error('Failed to download document');
@@ -254,7 +254,9 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     }
   };
 
-  const getStatusChipColor = (status: string) => {
+  const getStatusChipColor = (status: string | null) => {
+    if (!status) return 'default';
+    
     switch (status.toLowerCase()) {
       case 'pending':
         return 'warning';

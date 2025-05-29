@@ -242,7 +242,7 @@ const StepFive: React.FC<StepFiveProps> = ({ onNext, onBack }) => {
         });
       }
 
-      const response = await fetch(`http://localhost:3000/dev/api/v1/applications/${referenceNumber}/education-details`, {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/education-details`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
