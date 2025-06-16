@@ -28,6 +28,7 @@ import StepEight from './components/StepEight';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import UserManagement from './components/UserManagement';
+import ApplicationStatus from './components/ApplicationStatus';
 import backgroundImage from './assets/wuabackground.jpg';
 
 const steps = [
@@ -432,6 +433,7 @@ const App: FC = (): ReactElement => {
         } 
       />
       <Route path="/user-management" element={<UserManagement />} />
+      <Route path="/application-status" element={<ApplicationStatus />} />
     </Routes>
   );
 };
