@@ -284,6 +284,10 @@ const StepTwo: React.FC<StepTwoProps> = ({ onNext, onBack }) => {
 
   return (
     <Box sx={{ mt: 4 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        NOTE: This is your Reference Number: {sessionStorage.getItem('applicationReference')}. Keep it safe. You will be required to use it in the next session if you do not complete your application now.
+      </Typography>
+
       <Typography variant="h6" gutterBottom>
         Personal Details
       </Typography>
