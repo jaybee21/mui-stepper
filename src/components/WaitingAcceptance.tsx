@@ -565,9 +565,12 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                     onChange={(e) => handleFilterChange('satellite_campus', e.target.value)}
                   >
                     <MenuItem value="">All</MenuItem>
+                    <MenuItem value="Bulawayo">Bulawayo</MenuItem>
+                    <MenuItem value="Harare">Harare</MenuItem>
+                    <MenuItem value="Kadoma">Kadoma</MenuItem>
+                    <MenuItem value="Marondera">Marondera</MenuItem>
                     <MenuItem value="UK">UK</MenuItem>
-                    <MenuItem value="US">US</MenuItem>
-                    <MenuItem value="ZA">ZA</MenuItem>
+                   
                   </Select>
                 </FormControl>
               </Grid>

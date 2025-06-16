@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { useNavigate } from 'react-router-dom';
+import paynowLogo from '../assets/paynowlogo.png';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -498,6 +499,61 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
       <Typography>
         BANK ADDRESS: Cnr Edinburgh & Campbell Rd, Pomona, Borrowdale, Harare, Zimbabwe
       </Typography>
+
+      {/* PayNow Section */}
+      <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
+        <Typography variant="h6" sx={{ mb: 2, color: '#13A215' }}>
+          Click below to make your payment via PayNow
+        </Typography>
+        <Box 
+          component="a"
+          href="https://www.topup.co.zw/pay-bill/womens-university"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            display: 'inline-block',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            animation: 'pulse 2s infinite',
+            '@keyframes pulse': {
+              '0%': {
+                transform: 'scale(1)',
+                boxShadow: '0 0 0 0 rgba(19, 162, 21, 0.4)',
+              },
+              '70%': {
+                transform: 'scale(1.05)',
+                boxShadow: '0 0 0 10px rgba(19, 162, 21, 0)',
+              },
+              '100%': {
+                transform: 'scale(1)',
+                boxShadow: '0 0 0 0 rgba(19, 162, 21, 0)',
+              },
+            },
+            '&:hover': {
+              transform: 'scale(1.1)',
+              '& img': {
+                borderColor: '#1DBDD0',
+              },
+            },
+          }}
+        >
+          <img 
+            src={paynowLogo}
+            alt="PayNow Payment" 
+            style={{ 
+              maxWidth: '200px',
+              height: 'auto',
+              border: '2px solid #13A215',
+              borderRadius: '8px',
+              padding: '8px',
+              transition: 'all 0.3s ease',
+            }}
+          />
+        </Box>
+        <Typography variant="body2" sx={{ mt: 1, color: '#666' }}>
+          Click the PayNow logo above to proceed with your payment
+        </Typography>
+      </Box>
 
       {/* Add Next button at the bottom */}
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
