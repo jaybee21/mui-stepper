@@ -76,12 +76,14 @@ import WaitingAcceptance from "./WaitingAcceptance";
 import WaitingPin from "./WaitingPin";
 import WithPin from "./WithPin";
 import ProspectiveStudents from "./ProspectiveStudents";
+import UserManagement from "./UserManagement";
 import {
   removeAuthToken,
   decodeToken,
   fetchUserProfile,
   updateUserProfile,
   resetPassword,
+  getUserDetails,
 } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import { SelectChangeEvent } from "@mui/material";
@@ -123,6 +125,7 @@ enum TabId {
   WAITING_PIN = "waitingPin",
   WITH_PIN = "withPin",
   PROSPECTIVE = "prospective",
+  USER_MANAGEMENT = "userManagement"
 }
 
 // Sample data for waiting acceptance table
@@ -182,6 +185,7 @@ const Dashboard: FC = () => {
   const [open, setOpen] = React.useState(true);
   const [timeFilter, setTimeFilter] = useState("day");
   const [activeTab, setActiveTab] = useState<TabId>(TabId.DASHBOARD);
+  const [userRole, setUserRole] = useState<string>('');
   const theme = useTheme();
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElSettings, setAnchorElSettings] = useState<null | HTMLElement>(
@@ -220,8 +224,7 @@ const Dashboard: FC = () => {
       if (!token) {
         throw new Error("No authentication token found");
       }
-
-      console.log("Fetching dashboard data with filter:", timeFilter); // Debug log
+     
 
       const response = await fetch(
         `https://apply.wua.ac.zw/dev/api/v1/applications/dashboard?filter=${timeFilter}`,
@@ -239,7 +242,6 @@ const Dashboard: FC = () => {
       }
 
       const data = await response.json();
-      console.log("Dashboard data received:", data); // Debug log
       setDashboardData(data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -265,6 +267,16 @@ const Dashboard: FC = () => {
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
   };
+
+  // Update useEffect to use getUserDetails
+  useEffect(() => {
+    const userDetails = getUserDetails();
+    if (userDetails?.role) {
+      setUserRole(userDetails.role);
+    } else {
+      console.error('No user role found in session storage');
+    }
+  }, []);
 
   const menuItems = [
     {
@@ -297,7 +309,19 @@ const Dashboard: FC = () => {
       icon: <SchoolIcon />,
       count: stats.prospectiveStudents,
     },
+    ...(userRole === 'admin' ? [
+      {
+        id: TabId.USER_MANAGEMENT,
+        text: "User Management",
+        icon: <PeopleIcon />,
+        count: 0,
+      }
+    ] : []),
   ];
+
+  // Log menu items whenever they change
+  useEffect(() => {
+  }, [menuItems, userRole]);
 
   const StatCard = ({
     title,
@@ -536,6 +560,7 @@ const Dashboard: FC = () => {
 
   // Modify renderContent function
   const renderContent = () => {
+   
     switch (activeTab) {
       case TabId.DASHBOARD:
         return <DashboardContent />;
@@ -546,9 +571,9 @@ const Dashboard: FC = () => {
       case TabId.WITH_PIN:
         return <WithPin totalWithPin={stats.withPin} />;
       case TabId.PROSPECTIVE:
-        return (
-          <ProspectiveStudents totalProspective={stats.prospectiveStudents} />
-        );
+        return <ProspectiveStudents totalProspective={stats.prospectiveStudents} />;
+      case TabId.USER_MANAGEMENT:
+        return <UserManagement />;
       default:
         return <DashboardContent />;
     }

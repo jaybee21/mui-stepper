@@ -27,6 +27,7 @@ import StepSeven from './components/StepSeven';
 import StepEight from './components/StepEight'; 
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import UserManagement from './components/UserManagement';
 import backgroundImage from './assets/wuabackground.jpg';
 
 const steps = [
@@ -430,6 +431,7 @@ const App: FC = (): ReactElement => {
             <Navigate to="/admin" />
         } 
       />
+      <Route path="/user-management" element={<UserManagement />} />
     </Routes>
   );
 };

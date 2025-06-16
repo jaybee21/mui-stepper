@@ -17,6 +17,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import { setAuthToken } from '../utils/auth';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -54,11 +55,8 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
 
       if (response.status === 200) {
         const data: LoginResponse = await response.json();
-        // Store token in sessionStorage
-        sessionStorage.setItem('authToken', data.token);
-        // Store token in localStorage if you want it to persist after browser close
-        // localStorage.setItem('authToken', data.token);
-        
+        // Use setAuthToken instead of directly setting in sessionStorage
+        setAuthToken(data.token);
         setIsAuthenticated(true);
       } else {
         const errorData = await response.json();

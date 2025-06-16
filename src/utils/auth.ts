@@ -1,24 +1,50 @@
 import { jwtDecode } from 'jwt-decode';
 
+interface DecodedToken {
+  userId: number;
+  username: string;
+  role: string;
+  department: string;
+  email: string;
+  isFirstLogin: number;
+}
+
 export const getAuthToken = () => {
   return sessionStorage.getItem('authToken');
 };
 
 export const setAuthToken = (token: string) => {
+ 
   sessionStorage.setItem('authToken', token);
+  
+  try {
+   
+    const decodedToken = jwtDecode<DecodedToken>(token);
+    
+    
+    sessionStorage.setItem('decodedToken', JSON.stringify(decodedToken));
+    
+  } catch (error) {
+    
+  }
 };
 
 export const removeAuthToken = () => {
+  
   sessionStorage.removeItem('authToken');
+  sessionStorage.removeItem('decodedToken');
 };
 
 export const isAuthenticated = () => {
-  return !!getAuthToken();
+  const token = getAuthToken();
+ 
+  return !!token;
 };
 
 // Helper function for making authenticated API calls
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getAuthToken();
+  
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -31,6 +57,7 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   });
 
   if (response.status === 401) {
+   
     // Token expired or invalid
     removeAuthToken();
     window.location.href = '/admin'; // Redirect to login
@@ -39,19 +66,32 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   return response;
 };
 
-interface DecodedToken {
-  userId: number;
-  username: string;
-  role: string;
-  department: string;
-  email: string;
-  isFirstLogin: number;
-}
-
 export const decodeToken = (): DecodedToken | null => {
   const token = getAuthToken();
+ 
   if (!token) return null;
-  return jwtDecode(token);
+  try {
+    const decoded = jwtDecode<DecodedToken>(token);
+    
+    return decoded;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
+// New function to get user details from session storage
+export const getUserDetails = (): DecodedToken | null => {
+  const decodedTokenStr = sessionStorage.getItem('decodedToken');
+  
+  if (!decodedTokenStr) return null;
+  try {
+    const parsed = JSON.parse(decodedTokenStr);
+    return parsed;
+  } catch (error) {
+    console.error('Error parsing user details:', error);
+    return null;
+  }
 };
 
 export const fetchUserProfile = async (userId: number) => {
