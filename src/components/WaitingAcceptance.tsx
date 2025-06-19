@@ -38,6 +38,7 @@ interface Application {
   satellite_campus: string;
   created_at: string;
   accepted_status: string;
+  paynow_status: string | null;
 }
 
 interface FullApplicationDetails {
@@ -641,6 +642,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                 <TableCell sx={{ fontWeight: 'bold' }}>Programme</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Campus</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Paynow Status</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Created At</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold' }}>More</TableCell>
               </TableRow>
@@ -658,6 +660,13 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                     <Chip 
                       label={app.accepted_status} 
                       color={getStatusChipColor(app.accepted_status) as "warning" | "success" | "error" | "default"}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={app.paynow_status === 'yes' ? 'Yes' : 'No'} 
+                      color={app.paynow_status === 'yes' ? 'success' : 'error'}
                       size="small"
                     />
                   </TableCell>
