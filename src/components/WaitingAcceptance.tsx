@@ -30,6 +30,8 @@ import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as F
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import wuaLogo from './wua-logo.png';
+import { API_BASE_URL } from '../config/api';
+import { fetchWithAuth } from '../utils/auth';
 
 interface Application {
   id: number;
@@ -142,6 +144,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApplication, setSelectedApplication] = useState<FullApplicationDetails | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [decisionLoadingRef, setDecisionLoadingRef] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     reference_number: '',
     starting_semester: '',
@@ -167,11 +170,13 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       });
 
       const queryString = queryParams.toString();
-      const url = `https://apply.wua.ac.zw/dev/api/v1/applications${queryString ? `?${queryString}` : ''}`;
+      const url = `${API_BASE_URL}/applications${queryString ? `?${queryString}` : ''}`;
       
       const response = await fetch(url);
       const data = await response.json();
-      setApplications(data);
+      // Filter out accepted students - they should appear in "Applicants with PIN" instead
+      const filteredData = data.filter((app: Application) => app.accepted_status?.toLowerCase() !== 'accepted');
+      setApplications(filteredData);
     } catch (error) {
       console.error('Error fetching applications:', error);
     }
@@ -202,7 +207,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
 
   const handleViewDetails = async (referenceNumber: string) => {
     try {
-      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/full-details`);
+      const response = await fetch(`${API_BASE_URL}/applications/${referenceNumber}/full-details`);
       const data = await response.json();
       setSelectedApplication(data);
       setOpenDialog(true);
@@ -217,7 +222,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       const fileName = filePath.split('\\').pop() || documentType;
       
       // Make a request to download the file using the new API endpoint
-      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/download?path=${encodeURIComponent(fileName)}`);
+      const response = await fetch(`${API_BASE_URL}/applications/download?path=${encodeURIComponent(fileName)}`);
       
       if (!response.ok) {
         throw new Error('Failed to download document');
@@ -272,6 +277,42 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleDecision = async (referenceNumber: string, decision: 'accept' | 'reject') => {
+    const confirmText =
+      decision === 'accept'
+        ? `Accept application ${referenceNumber}? This will update the student's status and may trigger an email.`
+        : `Decline application ${referenceNumber}? This will update the student's status and may trigger an email.`;
+
+    const confirmed = window.confirm(confirmText);
+    if (!confirmed) return;
+
+    setDecisionLoadingRef(referenceNumber);
+    try {
+      // Accept + assign student number, or reject application
+      const endpoint =
+        decision === 'accept'
+          ? `${API_BASE_URL}/student-numbers/assign/${referenceNumber}`
+          : `${API_BASE_URL}/applications/${referenceNumber}/reject`;
+
+      const response = await fetchWithAuth(endpoint, { method: 'POST' });
+      if (!response.ok) {
+        const message = await response.text().catch(() => '');
+        throw new Error(message || 'Failed to update application status');
+      }
+
+      // Refresh list + details (if open)
+      await fetchApplications();
+      if (selectedApplication?.referenceNumber === referenceNumber) {
+        await handleViewDetails(referenceNumber);
+      }
+    } catch (error) {
+      console.error('Error updating decision:', error);
+      alert('Failed to update application status. Please check the backend endpoint and try again.');
+    } finally {
+      setDecisionLoadingRef(null);
+    }
   };
 
   const handleExportAsPdf = () => {
@@ -672,22 +713,47 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                   </TableCell>
                   <TableCell>{formatDate(app.created_at)}</TableCell>
                   <TableCell align="center">
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<VisibilityIcon />}
-                      onClick={() => handleViewDetails(app.reference_number)}
-                      sx={{ 
-                        color: '#13A215', 
-                        borderColor: '#13A215',
-                        '&:hover': {
+                    <Stack direction="row" spacing={1} justifyContent="center">
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => handleViewDetails(app.reference_number)}
+                        sx={{ 
+                          color: '#13A215', 
                           borderColor: '#13A215',
-                          backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                        }
-                      }}
-                    >
-                      View Details
-                    </Button>
+                          '&:hover': {
+                            borderColor: '#13A215',
+                            backgroundColor: 'rgba(19, 162, 21, 0.04)',
+                          }
+                        }}
+                      >
+                        View Details
+                      </Button>
+
+                      <Button
+                        variant="contained"
+                        size="small"
+                        disabled={decisionLoadingRef === app.reference_number}
+                        onClick={() => handleDecision(app.reference_number, 'accept')}
+                        sx={{ 
+                          bgcolor: '#13A215',
+                          '&:hover': { bgcolor: '#0f7d10' },
+                        }}
+                      >
+                        Accept
+                      </Button>
+
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        color="error"
+                        disabled={decisionLoadingRef === app.reference_number}
+                        onClick={() => handleDecision(app.reference_number, 'reject')}
+                      >
+                        Decline
+                      </Button>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -705,19 +771,44 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
         <DialogTitle>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">Application Details</Typography>
-            <Button
-              variant="contained"
-              startIcon={<PdfIcon />}
-              onClick={handleExportAsPdf}
-              sx={{ 
-                bgcolor: '#13A215',
-                '&:hover': {
-                  bgcolor: '#0f7d10',
-                }
-              }}
-            >
-              Export as PDF
-            </Button>
+            <Stack direction="row" spacing={1}>
+              {selectedApplication && (
+                <>
+                  <Button
+                    variant="contained"
+                    disabled={decisionLoadingRef === selectedApplication.referenceNumber}
+                    onClick={() => handleDecision(selectedApplication.referenceNumber, 'accept')}
+                    sx={{ 
+                      bgcolor: '#13A215',
+                      '&:hover': { bgcolor: '#0f7d10' },
+                    }}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    disabled={decisionLoadingRef === selectedApplication.referenceNumber}
+                    onClick={() => handleDecision(selectedApplication.referenceNumber, 'reject')}
+                  >
+                    Decline
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="contained"
+                startIcon={<PdfIcon />}
+                onClick={handleExportAsPdf}
+                sx={{ 
+                  bgcolor: '#13A215',
+                  '&:hover': {
+                    bgcolor: '#0f7d10',
+                  }
+                }}
+              >
+                Export as PDF
+              </Button>
+            </Stack>
           </Box>
         </DialogTitle>
         <DialogContent>

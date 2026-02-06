@@ -35,25 +35,113 @@ const StepSeven: React.FC<StepSevenProps> = ({ onNext, onBack }) => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [existingDocuments, setExistingDocuments] = useState<string[]>([]);
+  const [isPaynowPayment, setIsPaynowPayment] = useState(false);
+
+  const parsePaynowFlag = (value: unknown): boolean | null => {
+    if (value === undefined || value === null) return null;
+    if (typeof value === 'boolean') return value;
+
+    const normalized = String(value).trim().toLowerCase();
+    if (['y', 'yes', 'true', '1'].includes(normalized)) return true;
+    if (['n', 'no', 'false', '0'].includes(normalized)) return false;
+
+    return null;
+  };
+
+  const extractPaynowStatus = (data: any): boolean | null => {
+    if (!data) return null;
+
+    const candidateObjects = [
+      data,
+      data.personalDetails,
+      data.fullApplication?.personalDetails,
+      data.application?.personalDetails,
+      data.application,
+      data.fullApplication,
+    ];
+
+    const candidateKeys = ['paynow', 'paynow_status', 'paynowStatus'];
+
+    for (const obj of candidateObjects) {
+      if (!obj) continue;
+      for (const key of candidateKeys) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const parsed = parsePaynowFlag((obj as Record<string, unknown>)[key]);
+          if (parsed !== null) {
+            return parsed;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const fetchPaynowStatus = async (referenceNumber: string) => {
+    try {
+      const response = await fetch(`https://apply.wua.ac.zw/dev/api/v1/applications/${referenceNumber}/personal-details`);
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      const personalDetailsData = data.personalDetails || data;
+      const paynowFlag = extractPaynowStatus(personalDetailsData);
+
+      if (paynowFlag !== null) {
+        setIsPaynowPayment(paynowFlag);
+
+        try {
+          const storedDataString = sessionStorage.getItem('applicationData');
+          const parsedData = storedDataString ? JSON.parse(storedDataString) : {};
+          const updatedData = {
+            ...parsedData,
+            personalDetails: {
+              ...(parsedData.personalDetails || {}),
+              ...personalDetailsData,
+            },
+          };
+          sessionStorage.setItem('applicationData', JSON.stringify(updatedData));
+        } catch (storageError) {
+          console.error('Error updating stored personal details:', storageError);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching paynow status:', error);
+    }
+  };
 
   useEffect(() => {
-    // Check session storage for existing documents and program type
-    try {
-      const storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
-      
-      // Check if documents exist
+    const initialiseFromStorage = async () => {
+      let storedData: any = {};
+
+      try {
+        storedData = JSON.parse(sessionStorage.getItem('applicationData') || '{}');
+      } catch (error) {
+        console.error('Error loading stored data:', error);
+      }
+
       if (storedData.documents && storedData.documents.length > 0) {
         const documentTypes = storedData.documents.map((doc: any) => doc.document_type);
         setExistingDocuments(documentTypes);
       }
 
-      // Check if PhD program to show proposal requirement
       if (storedData.application && storedData.application.program_type === 'PHD') {
         setIsProposalRequired(true);
       }
-    } catch (error) {
-      console.error('Error loading stored data:', error);
-    }
+
+      const paynowValue = extractPaynowStatus(storedData);
+      if (paynowValue !== null) {
+        setIsPaynowPayment(paynowValue);
+      } else {
+        const referenceNumber = sessionStorage.getItem('applicationReference');
+        if (referenceNumber) {
+          await fetchPaynowStatus(referenceNumber);
+        }
+      }
+    };
+
+    void initialiseFromStorage();
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>) => {
@@ -113,11 +201,13 @@ const StepSeven: React.FC<StepSevenProps> = ({ onNext, onBack }) => {
       setOpenSnackbar(true);
       return false;
     }
-    if (!applicationFee && !hasExistingFee) {
-      setSnackbarMessage('Application fee proof is required');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return false;
+    if (!isPaynowPayment) {
+      if (!applicationFee && !hasExistingFee) {
+        setSnackbarMessage('Application fee proof is required');
+        setSnackbarSeverity('error');
+        setOpenSnackbar(true);
+        return false;
+      }
     }
     if (!birthCertificate && !hasExistingBirth) {
       setSnackbarMessage('Birth certificate is required');
@@ -315,8 +405,13 @@ const StepSeven: React.FC<StepSevenProps> = ({ onNext, onBack }) => {
 
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" sx={{ mt: 2 }}>
-          Application Fee (Required):
+          Application Fee {isPaynowPayment ? '(PayNow payment detected - upload optional)' : '(Required)'}
         </Typography>
+        {isPaynowPayment && (
+          <Typography variant="caption" sx={{ color: 'success.main', mb: 1, display: 'block' }}>
+            We have a PayNow confirmation for your application, so proof of payment is optional.
+          </Typography>
+        )}
         <input
           type="file"
           accept=".pdf,.jpeg,.gif,.doc,.docx,.pjpeg,.tiff"

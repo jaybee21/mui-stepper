@@ -56,6 +56,7 @@ import {
   Logout as LogoutIcon,
   LockReset as LockResetIcon,
   Person as ProfileIcon,
+  EditNote as EditNoteIcon,
 } from "@mui/icons-material";
 import {
   BarChart,
@@ -73,10 +74,10 @@ import {
   Cell,
 } from "recharts";
 import WaitingAcceptance from "./WaitingAcceptance";
-import WaitingPin from "./WaitingPin";
 import WithPin from "./WithPin";
-import ProspectiveStudents from "./ProspectiveStudents";
 import UserManagement from "./UserManagement";
+import SignatureUpload from "./SignatureUpload";
+import StudentNumberRangeManager from "./StudentNumberRangeManager";
 import {
   removeAuthToken,
   decodeToken,
@@ -122,10 +123,10 @@ const stats = {
 enum TabId {
   DASHBOARD = "dashboard",
   WAITING_ACCEPTANCE = "waitingAcceptance",
-  WAITING_PIN = "waitingPin",
   WITH_PIN = "withPin",
-  PROSPECTIVE = "prospective",
-  USER_MANAGEMENT = "userManagement"
+  USER_MANAGEMENT = "userManagement",
+  SIGNATURE_UPLOAD = "signatureUpload",
+  STUDENT_NUMBER_RANGE = "studentNumberRange",
 }
 
 // Sample data for waiting acceptance table
@@ -283,38 +284,32 @@ const Dashboard: FC = () => {
       id: TabId.DASHBOARD,
       text: "Dashboard Overview",
       icon: <DashboardIcon />,
-      count: stats.totalApplicants,
     },
     {
       id: TabId.WAITING_ACCEPTANCE,
       text: "Waiting Acceptance",
       icon: <PeopleIcon />,
-      count: stats.waitingAcceptance,
-    },
-    {
-      id: TabId.WAITING_PIN,
-      text: "Waiting for PIN",
-      icon: <VpnKeyIcon />,
-      count: stats.waitingPin,
     },
     {
       id: TabId.WITH_PIN,
       text: "Applicants with PIN",
       icon: <PersonIcon />,
-      count: stats.withPin,
-    },
-    {
-      id: TabId.PROSPECTIVE,
-      text: "Prospective Students",
-      icon: <SchoolIcon />,
-      count: stats.prospectiveStudents,
     },
     ...(userRole === 'admin' ? [
       {
         id: TabId.USER_MANAGEMENT,
         text: "User Management",
         icon: <PeopleIcon />,
-        count: 0,
+      },
+      {
+        id: TabId.SIGNATURE_UPLOAD,
+        text: "Signature Upload",
+        icon: <EditNoteIcon />,
+      },
+      {
+        id: TabId.STUDENT_NUMBER_RANGE,
+        text: "Student Number Range",
+        icon: <SettingsIcon />,
       }
     ] : []),
   ];
@@ -565,15 +560,15 @@ const Dashboard: FC = () => {
       case TabId.DASHBOARD:
         return <DashboardContent />;
       case TabId.WAITING_ACCEPTANCE:
-        return <WaitingAcceptance totalWaiting={stats.waitingAcceptance} />;
-      case TabId.WAITING_PIN:
-        return <WaitingPin totalWaitingPin={stats.waitingPin} />;
+        return <WaitingAcceptance totalWaiting={0} />;
       case TabId.WITH_PIN:
-        return <WithPin totalWithPin={stats.withPin} />;
-      case TabId.PROSPECTIVE:
-        return <ProspectiveStudents totalProspective={stats.prospectiveStudents} />;
+        return <WithPin totalWithPin={0} />;
       case TabId.USER_MANAGEMENT:
         return <UserManagement />;
+      case TabId.SIGNATURE_UPLOAD:
+        return <SignatureUpload />;
+      case TabId.STUDENT_NUMBER_RANGE:
+        return <StudentNumberRangeManager />;
       default:
         return <DashboardContent />;
     }
@@ -883,7 +878,6 @@ const Dashboard: FC = () => {
                       {item.text}
                     </Typography>
                   }
-                  secondary={`Total: ${item.count}`}
                 />
               </ListItemButton>
             ))}

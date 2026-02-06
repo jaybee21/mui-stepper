@@ -44,6 +44,7 @@ interface User {
   role: string;
   isFirstLogin: number;
   lastLogin: string;
+  campus?: string;
 }
 
 const UserManagement: React.FC = () => {
@@ -69,6 +70,7 @@ const UserManagement: React.FC = () => {
     department: '',
     role: 'user',
     isFirstLogin: true,
+    campus: '',
   });
 
   // Reset password form state
@@ -208,6 +210,7 @@ const UserManagement: React.FC = () => {
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Department</TableCell>
+              <TableCell>Campus</TableCell>
               <TableCell>Role</TableCell>
               <TableCell>Last Login</TableCell>
               <TableCell>Actions</TableCell>
@@ -220,6 +223,7 @@ const UserManagement: React.FC = () => {
                 <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.department}</TableCell>
+                <TableCell>{user.campus || ''}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>{new Date(user.lastLogin).toLocaleString()}</TableCell>
                 <TableCell>
@@ -294,6 +298,21 @@ const UserManagement: React.FC = () => {
               onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
               fullWidth
             />
+            <FormControl fullWidth>
+              <InputLabel>Campus</InputLabel>
+              <Select
+                value={newUser.campus}
+                onChange={(e) => setNewUser({ ...newUser, campus: e.target.value })}
+                label="Campus"
+              >
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="Bulawayo">Bulawayo</MenuItem>
+                <MenuItem value="Harare">Harare</MenuItem>
+                <MenuItem value="Kadoma">Kadoma</MenuItem>
+                <MenuItem value="Marondera">Marondera</MenuItem>
+                <MenuItem value="UK">UK</MenuItem>
+              </Select>
+            </FormControl>
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
               <Select

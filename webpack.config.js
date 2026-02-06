@@ -22,12 +22,13 @@ module.exports = {
     rules: [
       {
         test: /\.(js|jsx|ts|tsx)$/,
-        exclude: /node_modules/,      // SKIP transpiling MUI in node_modules
-        use: 'babel-loader'
+        include: path.resolve(__dirname, "src"),
+        use: "babel-loader",
       },
       {
         test: /\.(js|jsx)$/,
-        exclude: /node_modules\/(?!(recharts|d3-*)\/).*/,
+        // Only transpile specific ESM deps that need it (keep this list tight).
+        include: /node_modules[\\/](recharts|d3-*)[\\/]/,
         use: {
           loader: "babel-loader",
           options: {

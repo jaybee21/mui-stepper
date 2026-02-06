@@ -64,6 +64,9 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
   // Add new state for application data
   const [applicationData, setApplicationData] = useState<ApplicationData | null>(null);
 
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 5 }, (_, index) => (currentYear + index).toString());
+
   const validateNewApplication = () => {
     if (!year || !semester || !program || !campus || !session || !source || !registered || !programType) {
       setError('Please fill in all required fields for new application');
@@ -220,8 +223,11 @@ const StepOne: React.FC<StepOneProps> = ({ onNext }) => {
             <MenuItem value="" disabled>
               <em>Year in which you wish to commence your studies</em>
             </MenuItem>
-            <MenuItem value="2024">2024</MenuItem>
-            <MenuItem value="2025">2025</MenuItem>
+            {yearOptions.map((yearOption) => (
+              <MenuItem key={yearOption} value={yearOption}>
+                {yearOption}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
