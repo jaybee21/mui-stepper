@@ -45,23 +45,28 @@ interface Application {
 
 interface FullApplicationDetails {
   referenceNumber: string;
-  startingSemester: string;
+  startingSemester: string | null;
   satelliteCampus: string;
   acceptedStatus: string;
   createdAt: string;
   fullApplication: {
     id: number;
     reference_number: string;
-    starting_semester: string;
+    starting_semester: string | null;
     programme: string;
+    programme1?: string | null;
+    programme2?: string | null;
     satellite_campus: string;
     preferred_session: string;
     wua_discovery_method: string;
     previous_registration: string;
     created_at: string;
-    year_of_commencement: string;
-    program_type: string;
+    program_type: string | null;
     accepted_status: string;
+    student_number: string | null;
+    year_of_commencement: number;
+    ip_address?: { type: string; data: number[] } | null;
+    user_agent?: string | null;
     disabilities: Array<{
       id: number;
       application_id: number;
@@ -79,10 +84,10 @@ interface FullApplicationDetails {
       title: string;
       first_names: string;
       surname: string;
-      marital_status: string;
-      maiden_name: string;
-      national_id: string;
-      passport_number: string;
+      marital_status: string | null;
+      maiden_name: string | null;
+      national_id: string | null;
+      passport_number: string | null;
       date_of_birth: string;
       place_of_birth: string;
       gender: string;
@@ -92,37 +97,46 @@ interface FullApplicationDetails {
       postal_address: string;
       phone: string;
       email: string;
-      city: string;
-      country: string;
+      city: string | null;
+      country: string | null;
+      application_number?: string | null;
+      paynow?: string | null;
     };
     nextOfKin: {
       id: number;
       application_id: number;
-      first_name: string;
-      last_name: string;
+      full_name?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
       relationship: string;
       contact_address: string;
       contact_tel: string;
     };
-    educationDetails: Array<{
+    academicSummary: {
       id: number;
       application_id: number;
-      qualification_type: string;
-      examination_board: string;
-      subjects: Array<{
-        id: number;
-        education_id: number;
-        subject_name: string;
-        grade: string;
-        year_written: number;
-      }>;
-    }>;
-    documents: Array<{
+      olevel_subject_count: number | null;
+      olevel_includes_english: string | null;
+      olevel_includes_maths: string | null;
+      has_alevel: string | null;
+      alevel_passes_e_or_better: number | null;
+      has_professional_cert: string | null;
+      has_diploma: string | null;
+      has_degree: string | null;
+      notes: string | null;
+      created_at: string;
+    };
+    uploads: Array<{
       id: number;
       application_id: number;
-      document_type: string;
-      file_path: string;
-      uploaded_at: string;
+      file_kind: string;
+      original_name: string;
+      stored_name: string;
+      stored_path: string;
+      mime_type: string;
+      file_size_bytes: number;
+      sha256: string;
+      created_at: string;
     }>;
   };
 }
@@ -219,7 +233,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
   const handleDownloadDocument = async (filePath: string, documentType: string) => {
     try {
       // Extract filename from the path
-      const fileName = filePath.split('\\').pop() || documentType;
+      const fileName = filePath.split(/[\\/]/).pop() || documentType;
       
       // Make a request to download the file using the new API endpoint
       const response = await fetch(`${API_BASE_URL}/applications/download?path=${encodeURIComponent(fileName)}`);
@@ -240,7 +254,8 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
         : 'Unknown';
       
       // Create new filename with document type and student name
-      const newFileName = `${documentType}_${studentName.replace(/\s+/g, '_')}.${fileName.split('.').pop()}`;
+      const extension = fileName.includes('.') ? fileName.split('.').pop() : '';
+      const newFileName = `${documentType}_${studentName.replace(/\s+/g, '_')}${extension ? `.${extension}` : ''}`;
       
       // Create a temporary link element
       const link = document.createElement('a');
@@ -277,6 +292,13 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const formatYesNo = (value: string | null | undefined) => {
+    const normalized = (value || '').toString().trim().toUpperCase();
+    if (normalized === 'Y' || normalized === 'YES') return 'Yes';
+    if (normalized === 'N' || normalized === 'NO') return 'No';
+    return value ?? 'N/A';
   };
 
   const handleDecision = async (referenceNumber: string, decision: 'accept' | 'reject') => {
@@ -365,11 +387,15 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
-    pdfDoc.text(`Starting Semester: ${selectedApplication.startingSemester}`, leftMargin, yPosition);
     pdfDoc.text(`Programme: ${selectedApplication.fullApplication.programme}`, rightMargin, yPosition);
     yPosition += lineHeight;
+
+    const altProgramme1 = selectedApplication.fullApplication.programme1 || 'N/A';
+    const altProgramme2 = selectedApplication.fullApplication.programme2 || 'N/A';
+    pdfDoc.text(`Programme 1: ${altProgramme1}`, leftMargin, yPosition);
+    pdfDoc.text(`Programme 2: ${altProgramme2}`, rightMargin, yPosition);
+    yPosition += lineHeight;
     
-    pdfDoc.text(`Program Type: ${selectedApplication.fullApplication.program_type}`, leftMargin, yPosition);
     pdfDoc.text(`Preferred Session: ${selectedApplication.fullApplication.preferred_session}`, rightMargin, yPosition);
     yPosition += lineHeight;
     
@@ -400,11 +426,11 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.text(`Full Name: ${personalDetails.first_names} ${personalDetails.surname}`, rightMargin, yPosition);
     yPosition += lineHeight;
     
-    pdfDoc.text(`Marital Status: ${personalDetails.marital_status}`, leftMargin, yPosition);
+    pdfDoc.text(`Marital Status: ${personalDetails.marital_status || 'N/A'}`, leftMargin, yPosition);
     pdfDoc.text(`Maiden Name: ${personalDetails.maiden_name || 'N/A'}`, rightMargin, yPosition);
     yPosition += lineHeight;
     
-    pdfDoc.text(`National ID: ${personalDetails.national_id}`, leftMargin, yPosition);
+    pdfDoc.text(`National ID: ${personalDetails.national_id || 'N/A'}`, leftMargin, yPosition);
     pdfDoc.text(`Passport Number: ${personalDetails.passport_number || 'N/A'}`, rightMargin, yPosition);
     yPosition += lineHeight;
     
@@ -417,7 +443,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     yPosition += lineHeight;
     
     pdfDoc.text(`Nationality: ${personalDetails.nationality}`, leftMargin, yPosition);
-    pdfDoc.text(`City: ${personalDetails.city}`, rightMargin, yPosition);
+    pdfDoc.text(`City: ${personalDetails.city || 'N/A'}`, rightMargin, yPosition);
     yPosition += lineHeight;
     
     pdfDoc.text(`Residential Address: ${personalDetails.residential_address}`, leftMargin, yPosition);
@@ -442,8 +468,9 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
     const nextOfKin = selectedApplication.fullApplication.nextOfKin;
+    const nextOfKinName = nextOfKin.full_name || `${nextOfKin.first_name || ''} ${nextOfKin.last_name || ''}`.trim() || 'N/A';
     
-    pdfDoc.text(`Full Name: ${nextOfKin.first_name} ${nextOfKin.last_name}`, leftMargin, yPosition);
+    pdfDoc.text(`Full Name: ${nextOfKinName}`, leftMargin, yPosition);
     pdfDoc.text(`Relationship: ${nextOfKin.relationship}`, rightMargin, yPosition);
     yPosition += lineHeight;
     
@@ -463,19 +490,24 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
-    const disabilities = selectedApplication.fullApplication.disabilities[0];
-    pdfDoc.text(`Has Disability: ${disabilities.has_disability}`, leftMargin, yPosition);
-    yPosition += lineHeight;
-    
-    if (disabilities.has_disability === 'Yes') {
-      pdfDoc.text('Disability Types:', leftMargin, yPosition);
+    const disabilities = selectedApplication.fullApplication.disabilities?.[0];
+    if (disabilities) {
+      pdfDoc.text(`Has Disability: ${disabilities.has_disability}`, leftMargin, yPosition);
       yPosition += lineHeight;
-      if (disabilities.blindness) pdfDoc.text('- Blindness', leftMargin + 5, yPosition), yPosition += lineHeight;
-      if (disabilities.cerebral_palsy) pdfDoc.text('- Cerebral Palsy', leftMargin + 5, yPosition), yPosition += lineHeight;
-      if (disabilities.deafness) pdfDoc.text('- Deafness', leftMargin + 5, yPosition), yPosition += lineHeight;
-      if (disabilities.speech_impairment) pdfDoc.text('- Speech Impairment', leftMargin + 5, yPosition), yPosition += lineHeight;
-      if (disabilities.other) pdfDoc.text(`- Other: ${disabilities.other}`, leftMargin + 5, yPosition), yPosition += lineHeight;
-      if (disabilities.extra_adaptations) pdfDoc.text(`Extra Adaptations: ${disabilities.extra_adaptations}`, leftMargin, yPosition), yPosition += lineHeight;
+      
+      if (disabilities.has_disability === 'Yes') {
+        pdfDoc.text('Disability Types:', leftMargin, yPosition);
+        yPosition += lineHeight;
+        if (disabilities.blindness) pdfDoc.text('- Blindness', leftMargin + 5, yPosition), yPosition += lineHeight;
+        if (disabilities.cerebral_palsy) pdfDoc.text('- Cerebral Palsy', leftMargin + 5, yPosition), yPosition += lineHeight;
+        if (disabilities.deafness) pdfDoc.text('- Deafness', leftMargin + 5, yPosition), yPosition += lineHeight;
+        if (disabilities.speech_impairment) pdfDoc.text('- Speech Impairment', leftMargin + 5, yPosition), yPosition += lineHeight;
+        if (disabilities.other) pdfDoc.text(`- Other: ${disabilities.other}`, leftMargin + 5, yPosition), yPosition += lineHeight;
+        if (disabilities.extra_adaptations) pdfDoc.text(`Extra Adaptations: ${disabilities.extra_adaptations}`, leftMargin, yPosition), yPosition += lineHeight;
+      }
+    } else {
+      pdfDoc.text('Has Disability: N/A', leftMargin, yPosition);
+      yPosition += lineHeight;
     }
     
     // Add footer to first page
@@ -489,44 +521,38 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     pdfDoc.addPage();
     yPosition = 20;
     
-    // Add education details
+    // Add academic summary
     pdfDoc.setFontSize(14);
     pdfDoc.setFont(undefined, 'bold');
-    pdfDoc.text('5. Educational Qualifications', 20, yPosition);
+    pdfDoc.text('5. Academic Summary', 20, yPosition);
     yPosition += 8;
     
-    // Draw underline for Educational Qualifications
+    // Draw underline for Academic Summary
     pdfDoc.line(20, yPosition, pageWidth - 20, yPosition);
     yPosition += 5;
     
-    // Create tables for each education level
     pdfDoc.setFontSize(10);
     pdfDoc.setFont(undefined, 'normal');
-    selectedApplication.fullApplication.educationDetails.forEach(edu => {
-      // Add qualification level label
-      pdfDoc.setFont(undefined, 'bold');
-      const qualificationLabel = edu.qualification_type.toLowerCase().includes('level') 
-        ? edu.qualification_type 
-        : `${edu.qualification_type} Level`;
-      pdfDoc.text(`${qualificationLabel} (${edu.examination_board})`, 20, yPosition);
-      yPosition += 5;
-      
-      const educationData = edu.subjects.map(subject => [
-        subject.subject_name,
-        subject.grade,
-        subject.year_written.toString()
-      ]);
-      
-      autoTable(pdfDoc, {
-        startY: yPosition,
-        head: [['Subject', 'Grade', 'Year']],
-        body: educationData,
-        theme: 'grid',
-        headStyles: { fillColor: [19, 162, 21], textColor: [255, 255, 255], fontStyle: 'bold' },
-        margin: { left: 20 }
-      });
-      
-      yPosition = (pdfDoc as any).lastAutoTable.finalY + 10;
+    const academicSummary = selectedApplication.fullApplication.academicSummary;
+    const academicRows = [
+      ['O-Level Subject Count', academicSummary?.olevel_subject_count?.toString() || 'N/A'],
+      ['O-Level Includes English', formatYesNo(academicSummary?.olevel_includes_english)],
+      ['O-Level Includes Maths', formatYesNo(academicSummary?.olevel_includes_maths)],
+      ['Has A-Level', formatYesNo(academicSummary?.has_alevel)],
+      ['A-Level Passes (E or better)', academicSummary?.alevel_passes_e_or_better?.toString() || 'N/A'],
+      ['Has Professional Cert', formatYesNo(academicSummary?.has_professional_cert)],
+      ['Has Diploma', formatYesNo(academicSummary?.has_diploma)],
+      ['Has Degree', formatYesNo(academicSummary?.has_degree)],
+      ['Notes', academicSummary?.notes || 'N/A'],
+    ];
+    
+    autoTable(pdfDoc, {
+      startY: yPosition,
+      head: [['Item', 'Value']],
+      body: academicRows,
+      theme: 'grid',
+      headStyles: { fillColor: [19, 162, 21], textColor: [255, 255, 255], fontStyle: 'bold' },
+      margin: { left: 20 }
     });
     
     // Add footer to second page
@@ -846,30 +872,73 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>Education Details</Typography>
-                  {selectedApplication.fullApplication.educationDetails.map((edu, index) => (
-                    <Box key={index} sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1">{edu.qualification_type}</Typography>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Subject</TableCell>
-                            <TableCell>Grade</TableCell>
-                            <TableCell>Year</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {edu.subjects.map((subject, subIndex) => (
-                            <TableRow key={subIndex}>
-                              <TableCell>{subject.subject_name}</TableCell>
-                              <TableCell>{subject.grade}</TableCell>
-                              <TableCell>{subject.year_written}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </Box>
-                  ))}
+                  <Typography variant="h6" gutterBottom>Academic Summary</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="O-Level Subject Count"
+                        value={selectedApplication.fullApplication.academicSummary?.olevel_subject_count ?? 'N/A'}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="O-Level Includes English"
+                        value={formatYesNo(selectedApplication.fullApplication.academicSummary?.olevel_includes_english)}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="O-Level Includes Maths"
+                        value={formatYesNo(selectedApplication.fullApplication.academicSummary?.olevel_includes_maths)}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Has A-Level"
+                        value={formatYesNo(selectedApplication.fullApplication.academicSummary?.has_alevel)}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="A-Level Passes (E or better)"
+                        value={selectedApplication.fullApplication.academicSummary?.alevel_passes_e_or_better ?? 'N/A'}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Has Diploma"
+                        value={formatYesNo(selectedApplication.fullApplication.academicSummary?.has_diploma)}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Has Degree"
+                        value={formatYesNo(selectedApplication.fullApplication.academicSummary?.has_degree)}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Has Professional Cert"
+                        value={formatYesNo(selectedApplication.fullApplication.academicSummary?.has_professional_cert)}
+                        InputProps={{ readOnly: true }}
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
 
                 <Grid item xs={12}>
@@ -883,14 +952,14 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {selectedApplication.fullApplication.documents.map((doc, index) => (
+                      {selectedApplication.fullApplication.uploads.map((doc, index) => (
                         <TableRow key={index}>
-                          <TableCell>{doc.document_type}</TableCell>
-                          <TableCell>{formatDate(doc.uploaded_at)}</TableCell>
+                          <TableCell>{doc.file_kind}</TableCell>
+                          <TableCell>{formatDate(doc.created_at)}</TableCell>
                           <TableCell align="center">
                             <Tooltip title="Download">
                               <IconButton
-                                onClick={() => handleDownloadDocument(doc.file_path, doc.document_type)}
+                                onClick={() => handleDownloadDocument(doc.stored_name || doc.stored_path, doc.file_kind)}
                                 sx={{ color: '#13A215' }}
                               >
                                 <DownloadIcon />
