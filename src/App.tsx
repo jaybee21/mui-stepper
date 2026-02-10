@@ -29,6 +29,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import UserManagement from './components/UserManagement';
 import ApplicationStatus from './components/ApplicationStatus';
+import VerifyOffer from './components/VerifyOffer';
 import backgroundImage from './assets/wuabackground.jpg';
 
 const steps = [
@@ -416,6 +417,7 @@ const App: FC = (): ReactElement => {
   return (
     <Routes>
       <Route path="/" element={<MainContent />} />
+      <Route path="/apply-online/verify-offer" element={<VerifyOffer />} />
       <Route 
         path="/admin" 
         element={
