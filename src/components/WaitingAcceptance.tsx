@@ -25,6 +25,8 @@ import {
   Select,
   MenuItem,
   Stack,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import jsPDF from 'jspdf';
@@ -159,6 +161,14 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
   const [selectedApplication, setSelectedApplication] = useState<FullApplicationDetails | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [decisionLoadingRef, setDecisionLoadingRef] = useState<string | null>(null);
+  const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
+  const [acceptReference, setAcceptReference] = useState<string | null>(null);
+  const [acceptProgrammes, setAcceptProgrammes] = useState<string[]>([]);
+  const [acceptProgramme, setAcceptProgramme] = useState<string>('');
+  const [acceptLoading, setAcceptLoading] = useState(false);
+  const [acceptError, setAcceptError] = useState<string | null>(null);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [filters, setFilters] = useState<FilterState>({
     reference_number: '',
     starting_semester: '',
@@ -230,13 +240,13 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
     }
   };
 
-  const handleDownloadDocument = async (filePath: string, documentType: string) => {
+  const handleDownloadDocument = async (filePathOrName: string, documentType: string) => {
     try {
-      // Extract filename from the path
-      const fileName = filePath.split(/[\\/]/).pop() || documentType;
+      const normalizedPath = filePathOrName.trim();
+      const fileName = normalizedPath.split(/[\\/]/).pop() || documentType;
       
       // Make a request to download the file using the new API endpoint
-      const response = await fetch(`${API_BASE_URL}/applications/download?path=${encodeURIComponent(fileName)}`);
+      const response = await fetch(`${API_BASE_URL}/applications/download?path=${encodeURIComponent(normalizedPath)}`);
       
       if (!response.ok) {
         throw new Error('Failed to download document');
@@ -304,8 +314,13 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
   const handleDecision = async (referenceNumber: string, decision: 'accept' | 'reject') => {
     const confirmText =
       decision === 'accept'
-        ? `Accept application ${referenceNumber}? This will update the student's status and may trigger an email.`
+        ? `Accept application ${referenceNumber}?`
         : `Decline application ${referenceNumber}? This will update the student's status and may trigger an email.`;
+
+    if (decision === 'accept') {
+      await openAcceptDialog(referenceNumber);
+      return;
+    }
 
     const confirmed = window.confirm(confirmText);
     if (!confirmed) return;
@@ -334,6 +349,76 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       alert('Failed to update application status. Please check the backend endpoint and try again.');
     } finally {
       setDecisionLoadingRef(null);
+    }
+  };
+
+  const openAcceptDialog = async (referenceNumber: string) => {
+    setAcceptError(null);
+    setAcceptProgramme('');
+    setAcceptProgrammes([]);
+    setAcceptReference(referenceNumber);
+
+    try {
+      let details = selectedApplication;
+      if (!details || details.referenceNumber !== referenceNumber) {
+        const response = await fetch(`${API_BASE_URL}/applications/${referenceNumber}/full-details`);
+        details = await response.json();
+        setSelectedApplication(details);
+      }
+
+      const programmes = [
+        details.fullApplication.programme,
+        details.fullApplication.programme1,
+        details.fullApplication.programme2,
+      ].filter((value): value is string => !!value && value.trim().length > 0);
+
+      const uniqueProgrammes = Array.from(new Set(programmes));
+      setAcceptProgrammes(uniqueProgrammes);
+      setAcceptProgramme(uniqueProgrammes[0] || '');
+      setAcceptDialogOpen(true);
+    } catch (error) {
+      console.error('Error preparing accept dialog:', error);
+      setAcceptError('Failed to load programme options. Please try again.');
+      setAcceptDialogOpen(true);
+    }
+  };
+
+  const handleConfirmAccept = async () => {
+    if (!acceptReference) return;
+
+    if (!acceptProgramme) {
+      setAcceptError('Please select an accepted programme.');
+      return;
+    }
+
+    setAcceptLoading(true);
+    setAcceptError(null);
+    try {
+      const endpoint = `${API_BASE_URL}/student-numbers/assign/${acceptReference}`;
+      const response = await fetchWithAuth(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acceptedProgramme: acceptProgramme }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text().catch(() => '');
+        throw new Error(message || 'Failed to accept application');
+      }
+
+      setAcceptDialogOpen(false);
+      setToastMessage(`Application ${acceptReference} accepted.`);
+      setToastOpen(true);
+
+      await fetchApplications();
+      if (selectedApplication?.referenceNumber === acceptReference) {
+        await handleViewDetails(acceptReference);
+      }
+    } catch (error) {
+      console.error('Error accepting application:', error);
+      setAcceptError('Failed to accept application. Please try again.');
+    } finally {
+      setAcceptLoading(false);
     }
   };
 
@@ -959,7 +1044,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                           <TableCell align="center">
                             <Tooltip title="Download">
                               <IconButton
-                                onClick={() => handleDownloadDocument(doc.stored_name || doc.stored_path, doc.file_kind)}
+                                onClick={() => handleDownloadDocument(doc.stored_path || doc.stored_name, doc.file_kind)}
                                 sx={{ color: '#13A215' }}
                               >
                                 <DownloadIcon />
@@ -975,10 +1060,70 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
             </Box>
           )}
         </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setOpenDialog(false)}>Close</Button>
+      </DialogActions>
+    </Dialog>
+
+      <Dialog
+        open={acceptDialogOpen}
+        onClose={() => setAcceptDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Select Accepted Programme</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
+            Choose the programme that will be used to assign the student number.
+          </Typography>
+          <FormControl fullWidth size="small">
+            <InputLabel>Accepted Programme</InputLabel>
+            <Select
+              value={acceptProgramme}
+              label="Accepted Programme"
+              onChange={(e) => setAcceptProgramme(e.target.value)}
+            >
+              {acceptProgrammes.map((programme) => (
+                <MenuItem key={programme} value={programme}>
+                  {programme}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {acceptError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {acceptError}
+            </Alert>
+          )}
+        </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Close</Button>
+          <Button onClick={() => setAcceptDialogOpen(false)} disabled={acceptLoading}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirmAccept}
+            disabled={acceptLoading}
+            sx={{ 
+              bgcolor: '#13A215',
+              '&:hover': { bgcolor: '#0f7d10' },
+            }}
+          >
+            Confirm Acceptance
+          </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={4000}
+        onClose={() => setToastOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="success" onClose={() => setToastOpen(false)} variant="filled">
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
