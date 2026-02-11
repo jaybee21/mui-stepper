@@ -27,7 +27,7 @@ import {
   Stack,
   CircularProgress,
 } from '@mui/material';
-import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon, Refresh as RefreshIcon, SearchOff as SearchOffIcon } from '@mui/icons-material';
 import { API_BASE_URL } from '../config/api';
 import { fetchWithAuth } from '../utils/auth';
 
@@ -292,22 +292,20 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" sx={{ color: '#333' }}>
-          Applicants with PIN ({applications.length})
-        </Typography>
+        <Box>
+          <Typography variant="h4" sx={{ color: 'text.primary' }}>
+            Applicants with PIN ({applications.length})
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            Accepted applicants issued with student numbers.
+          </Typography>
+        </Box>
         <Stack direction="row" spacing={2}>
           <Button
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={fetchApplications}
-            sx={{ 
-              color: '#13A215', 
-              borderColor: '#13A215',
-              '&:hover': {
-                borderColor: '#13A215',
-                backgroundColor: 'rgba(19, 162, 21, 0.04)',
-              }
-            }}
+            sx={{ borderColor: 'primary.main' }}
           >
             Refresh
           </Button>
@@ -315,14 +313,7 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
             variant="outlined"
             startIcon={showFilters ? <ClearIcon /> : <FilterListIcon />}
             onClick={() => setShowFilters(!showFilters)}
-            sx={{ 
-              color: '#13A215', 
-              borderColor: '#13A215',
-              '&:hover': {
-                borderColor: '#13A215',
-                backgroundColor: 'rgba(19, 162, 21, 0.04)',
-              }
-            }}
+            sx={{ borderColor: 'primary.main' }}
           >
             {showFilters ? 'Hide Filters' : 'Show Filters'}
           </Button>
@@ -331,7 +322,7 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
       
       <Card sx={{ p: 3, mb: 3 }}>
         {showFilters && (
-          <Card sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5' }}>
+          <Card sx={{ p: 2.5, mb: 3, bgcolor: '#F1F4EC', border: '1px solid #E3E6DE' }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={4}>
                 <TextField
@@ -408,26 +399,13 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
                 variant="outlined"
                 onClick={handleClearFilters}
                 startIcon={<ClearIcon />}
-                sx={{ 
-                  color: '#666', 
-                  borderColor: '#666',
-                  '&:hover': {
-                    borderColor: '#666',
-                    backgroundColor: 'rgba(102, 102, 102, 0.04)',
-                  }
-                }}
+                sx={{ borderColor: 'text.secondary', color: 'text.secondary' }}
               >
                 Clear Filters
               </Button>
               <Button
                 variant="contained"
                 onClick={handleApplyFilters}
-                sx={{ 
-                  bgcolor: '#13A215',
-                  '&:hover': {
-                    bgcolor: '#0f7d10',
-                  }
-                }}
               >
                 Apply Filters
               </Button>
@@ -440,9 +418,9 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #eee' }}>
+          <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #E3E6DE' }}>
             <Table sx={{ minWidth: 650 }} aria-label="applicants with pin table">
-              <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+              <TableHead sx={{ bgcolor: '#F1F4EC' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Reference Number</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Student Number</TableCell>
@@ -457,10 +435,12 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
               <TableBody>
                 {applications.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        No accepted applicants found
-                      </Typography>
+                    <TableCell colSpan={8} align="center" sx={{ py: 5 }}>
+                      <Stack spacing={1} alignItems="center">
+                        <SearchOffIcon sx={{ fontSize: 36, color: 'text.secondary' }} />
+                        <Typography variant="subtitle1">No accepted applicants found</Typography>
+                        <Chip label="Try adjusting filters" variant="outlined" />
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -501,14 +481,7 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
                             size="small"
                             startIcon={<VisibilityIcon />}
                             onClick={() => handleViewDetails(app.reference_number)}
-                            sx={{ 
-                              color: '#13A215', 
-                              borderColor: '#13A215',
-                              '&:hover': {
-                                borderColor: '#13A215',
-                                backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                              }
-                            }}
+                            sx={{ borderColor: 'primary.main' }}
                           >
                             View
                           </Button>
@@ -517,14 +490,7 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
                             size="small"
                             startIcon={<PdfIcon />}
                             onClick={() => handleDownloadOfferLetter(app.reference_number)}
-                            sx={{ 
-                              color: '#13A215', 
-                              borderColor: '#13A215',
-                              '&:hover': {
-                                borderColor: '#13A215',
-                                backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                              }
-                            }}
+                            sx={{ borderColor: 'primary.main' }}
                           >
                             Offer Letter
                           </Button>
@@ -545,9 +511,14 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Application Details</Typography>
+            <Box>
+              <Typography variant="h6">Application Details</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Accepted applicant profile and documents.
+              </Typography>
+            </Box>
             <Stack direction="row" spacing={1}>
               {selectedApplication && (
                 <>
@@ -555,26 +526,13 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
                     variant="contained"
                     startIcon={<PdfIcon />}
                     onClick={() => handleDownloadOfferLetter(selectedApplication.referenceNumber)}
-                    sx={{ 
-                      bgcolor: '#13A215',
-                      '&:hover': {
-                        bgcolor: '#0f7d10',
-                      }
-                    }}
                   >
                     Download Offer Letter
                   </Button>
                   <Button
                     variant="outlined"
                     onClick={() => handleRegenerateOfferLetter(selectedApplication.referenceNumber)}
-                    sx={{ 
-                      color: '#13A215', 
-                      borderColor: '#13A215',
-                      '&:hover': {
-                        borderColor: '#13A215',
-                        backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                      }
-                    }}
+                    sx={{ borderColor: 'primary.main' }}
                   >
                     Regenerate
                   </Button>
@@ -687,7 +645,9 @@ const WithPin: FC<WithPinProps> = ({ totalWithPin }) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Close</Button>
+          <Button onClick={() => setOpenDialog(false)} variant="outlined">
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

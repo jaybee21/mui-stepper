@@ -12,6 +12,7 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import { useNavigate, useLocation } from 'react-router-dom';
+import wuaLogo from './wua-logo.png';
 
 interface SidebarProps {
   open: boolean;
@@ -86,15 +87,26 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         '& .MuiDrawer-paper': {
           width: 240,
           boxSizing: 'border-box',
-          backgroundColor: '#f5f5f5',
-          borderRight: '1px solid rgba(0, 0, 0, 0.12)',
+          backgroundColor: '#FFFFFF',
+          borderRight: '1px solid #E3E6DE',
         },
       }}
     >
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ color: '#13A215' }}>
-          WUA Portal
-        </Typography>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
+          component="img"
+          src={wuaLogo}
+          alt="WUA"
+          sx={{ width: 34, height: 34, bgcolor: 'white', borderRadius: '50%', p: 0.5 }}
+        />
+        <Box>
+          <Typography variant="subtitle1" sx={{ color: '#1B1F1B', fontWeight: 700 }}>
+            WUA Portal
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Admin Navigation
+          </Typography>
+        </Box>
       </Box>
       <Divider />
       <List>
@@ -107,6 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             sx={{
               '&.Mui-selected': {
                 backgroundColor: 'rgba(19, 162, 21, 0.08)',
+                borderRight: '4px solid #EEB422',
                 '&:hover': {
                   backgroundColor: 'rgba(19, 162, 21, 0.12)',
                 },

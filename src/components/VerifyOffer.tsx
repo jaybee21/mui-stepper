@@ -87,8 +87,7 @@ const VerifyOffer: FC = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background:
-          'radial-gradient(circle at 20% 20%, rgba(19,162,21,0.12), transparent 40%), linear-gradient(135deg, #f7fbf7 0%, #f0f6f1 100%)',
+        backgroundColor: '#F7F8F4',
         display: 'flex',
         alignItems: 'center',
         py: 6,
@@ -99,9 +98,19 @@ const VerifyOffer: FC = () => {
           sx={{
             p: { xs: 3, sm: 4 },
             borderRadius: 3,
-            boxShadow: '0 18px 50px rgba(18, 52, 27, 0.18)',
+            boxShadow: '0 18px 50px rgba(18, 52, 27, 0.15)',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              borderTop: '6px solid #EEB422',
+              pointerEvents: 'none',
+            }}
+          />
           <Stack spacing={3}>
             <Stack direction="row" spacing={2} alignItems="center">
               <Box

@@ -30,6 +30,7 @@ import Dashboard from './components/Dashboard';
 import UserManagement from './components/UserManagement';
 import ApplicationStatus from './components/ApplicationStatus';
 import VerifyOffer from './components/VerifyOffer';
+import AdminThemeProvider from './components/AdminThemeProvider';
 import backgroundImage from './assets/wuabackground.jpg';
 
 const steps = [
@@ -413,28 +414,35 @@ const MainContent: FC = () => {
 
 const App: FC = (): ReactElement => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const withAdminTheme = (element: ReactElement) => (
+    <AdminThemeProvider>{element}</AdminThemeProvider>
+  );
 
   return (
     <Routes>
       <Route path="/" element={<MainContent />} />
-      <Route path="/apply-online/verify-offer" element={<VerifyOffer />} />
+      <Route path="/apply-online/verify-offer" element={withAdminTheme(<VerifyOffer />)} />
       <Route 
         path="/admin" 
         element={
-          isAuthenticated ? 
-            <Navigate to="/admin/dashboard" /> : 
-            <Login setIsAuthenticated={setIsAuthenticated} />
+          withAdminTheme(
+            isAuthenticated ? 
+              <Navigate to="/admin/dashboard" /> : 
+              <Login setIsAuthenticated={setIsAuthenticated} />
+          )
         } 
       />
       <Route 
         path="/admin/dashboard" 
         element={
-          isAuthenticated ? 
-            <Dashboard /> : 
-            <Navigate to="/admin" />
+          withAdminTheme(
+            isAuthenticated ? 
+              <Dashboard /> : 
+              <Navigate to="/admin" />
+          )
         } 
       />
-      <Route path="/user-management" element={<UserManagement />} />
+      <Route path="/user-management" element={withAdminTheme(<UserManagement />)} />
       <Route path="/application-status" element={<ApplicationStatus />} />
     </Routes>
   );

@@ -11,6 +11,8 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  Divider,
+  Stack,
 } from '@mui/material';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -18,6 +20,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { setAuthToken } from '../utils/auth';
+import wuaLogo from './wua-logo.png';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -85,7 +88,7 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component="main" maxWidth="sm">
       <Box
         sx={{
           display: 'flex',
@@ -93,37 +96,60 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
+          py: 6,
         }}
       >
         <Paper
-          elevation={3}
           sx={{
             p: 4,
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'stretch',
             width: '100%',
             borderRadius: 2,
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <Avatar sx={{ 
-            m: 1, 
-            bgcolor: '#13A215',
-            width: 56,
-            height: 56,
-          }}>
-            <LockOutlinedIcon sx={{ fontSize: 32 }} />
-          </Avatar>
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              mb: 3,
-              color: '#333',
-              fontWeight: 600,
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              borderTop: '6px solid #EEB422',
+              pointerEvents: 'none',
             }}
-          >
-            Admin Login
-          </Typography>
+          />
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+            <Box
+              component="img"
+              src={wuaLogo}
+              alt="WUA"
+              sx={{ width: 52, height: 52 }}
+            />
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                WUA Admin Portal
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Admissions Management Console
+              </Typography>
+            </Box>
+          </Stack>
+          <Divider sx={{ mb: 3 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Avatar
+              sx={{
+                bgcolor: '#13A215',
+                width: 44,
+                height: 44,
+              }}
+            >
+              <LockOutlinedIcon sx={{ fontSize: 24 }} />
+            </Avatar>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Sign in to continue
+            </Typography>
+          </Box>
           <TextField
             margin="normal"
             required
@@ -177,13 +203,8 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
               mt: 2,
               mb: 2,
               py: 1.5,
-              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-              },
               borderRadius: '8px',
-              textTransform: 'none',
-              fontSize: '1.1rem',
+              fontSize: '1rem',
             }}
           >
             {isLoading ? (
@@ -192,6 +213,9 @@ const Login: FC<LoginProps> = ({ setIsAuthenticated }) => {
               'Sign In'
             )}
           </Button>
+          <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center' }}>
+            Authorized staff only. Contact ICT for access support.
+          </Typography>
         </Paper>
       </Box>
       <Snackbar 

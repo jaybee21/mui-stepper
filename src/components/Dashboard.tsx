@@ -78,6 +78,7 @@ import WithPin from "./WithPin";
 import UserManagement from "./UserManagement";
 import SignatureUpload from "./SignatureUpload";
 import StudentNumberRangeManager from "./StudentNumberRangeManager";
+import wuaLogo from "./wua-logo.png";
 import {
   removeAuthToken,
   decodeToken,
@@ -107,7 +108,7 @@ const programStats = [
   { name: "Others", value: 5 },
 ];
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+const COLORS = ["#13A215", "#208F74", "#EEB422", "#FFD700", "#7C8B78"];
 
 const stats = {
   totalApplicants: 150,
@@ -336,13 +337,13 @@ const Dashboard: FC = () => {
         display: "flex",
         flexDirection: "column",
         bgcolor: "background.paper",
-        borderRadius: 2,
+        borderRadius: 2.5,
         position: "relative",
         overflow: "hidden",
         "&:hover": {
-          boxShadow: theme.shadows[10],
-          transform: "translateY(-4px)",
-          transition: "all 0.3s",
+          boxShadow: "0 16px 30px rgba(27, 31, 27, 0.12)",
+          transform: "translateY(-2px)",
+          transition: "all 0.2s ease",
         },
       }}
     >
@@ -351,8 +352,8 @@ const Dashboard: FC = () => {
           position: "absolute",
           top: 0,
           right: 0,
-          p: 1,
-          color: "#13A215",
+          p: 1.5,
+          color: "primary.main",
         }}
       >
         {icon}
@@ -360,7 +361,7 @@ const Dashboard: FC = () => {
       <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 1 }}>
         {title}
       </Typography>
-      <Typography variant="h3" sx={{ mb: 2, color: "#13A215" }}>
+      <Typography variant="h4" sx={{ mb: 2, color: "primary.main" }}>
         {value}
       </Typography>
       {trend && (
@@ -498,13 +499,13 @@ const Dashboard: FC = () => {
                     <Line
                       type="monotone"
                       dataKey="accepted"
-                      stroke="#0088FE"
+                      stroke="#208F74"
                       strokeWidth={2}
                     />
                     <Line
                       type="monotone"
                       dataKey="rejected"
-                      stroke="#FF8042"
+                      stroke="#EEB422"
                       strokeWidth={2}
                     />
                   </LineChart>
@@ -711,7 +712,8 @@ const Dashboard: FC = () => {
         position="fixed"
         sx={{
           zIndex: theme.zIndex.drawer + 1,
-          bgcolor: "#13A215",
+          bgcolor: "primary.main",
+          borderBottom: "4px solid #EEB422",
         }}
       >
         <Toolbar>
@@ -724,9 +726,22 @@ const Dashboard: FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            WUA Admin Dashboard
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexGrow: 1 }}>
+            <Box
+              component="img"
+              src={wuaLogo}
+              alt="WUA"
+              sx={{ width: 34, height: 34, bgcolor: "white", borderRadius: "50%", p: 0.5 }}
+            />
+            <Box>
+              <Typography variant="h6" noWrap component="div" sx={{ lineHeight: 1.1 }}>
+                WUA Admissions Admin
+              </Typography>
+              <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.85)" }}>
+                Dashboard &amp; Operations
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Settings Menu */}
           <Box sx={{ mr: 2 }}>
@@ -827,6 +842,8 @@ const Dashboard: FC = () => {
           "& .MuiDrawer-paper": {
             width: 240,
             boxSizing: "border-box",
+            bgcolor: "background.paper",
+            borderRight: "1px solid #E3E6DE",
             ...(open
               ? {}
               : {
@@ -846,10 +863,10 @@ const Dashboard: FC = () => {
                 onClick={() => handleTabChange(item.id)}
                 sx={{
                   "&.Mui-selected": {
-                    backgroundColor: "rgba(19, 162, 21, 0.1)",
-                    borderRight: "4px solid #13A215",
+                    backgroundColor: "rgba(19, 162, 21, 0.08)",
+                    borderRight: "4px solid #EEB422",
                     "&:hover": {
-                      backgroundColor: "rgba(19, 162, 21, 0.2)",
+                      backgroundColor: "rgba(19, 162, 21, 0.12)",
                     },
                   },
                   "&:hover": {
@@ -859,7 +876,7 @@ const Dashboard: FC = () => {
               >
                 <ListItemIcon
                   sx={{
-                    color: activeTab === item.id ? "#13A215" : "text.secondary",
+                    color: activeTab === item.id ? "primary.main" : "text.secondary",
                     minWidth: 40,
                   }}
                 >
@@ -872,7 +889,7 @@ const Dashboard: FC = () => {
                       sx={{
                         fontWeight: activeTab === item.id ? 600 : 400,
                         color:
-                          activeTab === item.id ? "#13A215" : "text.primary",
+                          activeTab === item.id ? "primary.main" : "text.primary",
                       }}
                     >
                       {item.text}
@@ -885,7 +902,7 @@ const Dashboard: FC = () => {
           <Divider />
         </Box>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
         <Toolbar />
         {renderContent()}
       </Box>
@@ -897,7 +914,12 @@ const Dashboard: FC = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Update Profile</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6">Update Profile</Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Keep your account information current.
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           {error && (
             <Typography color="error" sx={{ mb: 2 }}>
@@ -978,6 +1000,7 @@ const Dashboard: FC = () => {
           <Button
             onClick={() => setOpenProfileDialog(false)}
             disabled={isLoading}
+            variant="outlined"
           >
             Cancel
           </Button>
@@ -985,12 +1008,6 @@ const Dashboard: FC = () => {
             variant="contained"
             onClick={handleProfileSubmit}
             disabled={isLoading}
-            sx={{
-              background: "linear-gradient(45deg, #13A215, #1DBDD0)",
-              "&:hover": {
-                background: "linear-gradient(45deg, #0B8A0D, #189AAD)",
-              },
-            }}
           >
             {isLoading ? (
               <CircularProgress size={24} color="inherit" />
@@ -1008,7 +1025,12 @@ const Dashboard: FC = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Reset Password</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6">Reset Password</Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Set a new password for your account.
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           {passwordError && (
             <Typography color="error" sx={{ mb: 2 }}>
@@ -1050,6 +1072,7 @@ const Dashboard: FC = () => {
           <Button
             onClick={() => setOpenPasswordDialog(false)}
             disabled={isPasswordLoading}
+            variant="outlined"
           >
             Cancel
           </Button>
@@ -1057,12 +1080,6 @@ const Dashboard: FC = () => {
             variant="contained"
             onClick={handlePasswordSubmit}
             disabled={isPasswordLoading}
-            sx={{
-              background: "linear-gradient(45deg, #13A215, #1DBDD0)",
-              "&:hover": {
-                background: "linear-gradient(45deg, #0B8A0D, #189AAD)",
-              },
-            }}
           >
             {isPasswordLoading ? (
               <CircularProgress size={24} color="inherit" />

@@ -22,9 +22,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Chip,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { fetchWithAuth } from '../utils/auth';
 
@@ -191,20 +193,14 @@ const UserManagement: React.FC = () => {
         <Button
           variant="contained"
           onClick={() => setOpenCreateDialog(true)}
-          sx={{
-            background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-            },
-          }}
         >
           Create New User
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} variant="outlined">
         <Table>
-          <TableHead>
+          <TableHead sx={{ bgcolor: '#F1F4EC' }}>
             <TableRow>
               <TableCell>Username</TableCell>
               <TableCell>Name</TableCell>
@@ -217,42 +213,59 @@ const UserManagement: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.department}</TableCell>
-                <TableCell>{user.campus || ''}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>{new Date(user.lastLogin).toLocaleString()}</TableCell>
-                <TableCell>
-                  <IconButton
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setResetPassword({ ...resetPassword, username: user.username });
-                      setOpenResetDialog(true);
-                    }}
-                    color="primary"
-                  >
-                    <RefreshIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleDeleteUser(user.id)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+            {users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center" sx={{ py: 5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                    <SearchOffIcon sx={{ fontSize: 36, color: 'text.secondary' }} />
+                    <Typography variant="subtitle1">No users available</Typography>
+                    <Chip label="Create a user to get started" variant="outlined" />
+                  </Box>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              users.map((user) => (
+                <TableRow key={user.id} hover sx={{ '&:hover': { bgcolor: 'rgba(19, 162, 21, 0.04)' } }}>
+                  <TableCell>{user.username}</TableCell>
+                  <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.department}</TableCell>
+                  <TableCell>{user.campus || ''}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>{new Date(user.lastLogin).toLocaleString()}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setResetPassword({ ...resetPassword, username: user.username });
+                        setOpenResetDialog(true);
+                      }}
+                      color="primary"
+                    >
+                      <RefreshIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDeleteUser(user.id)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
       {/* Create User Dialog */}
       <Dialog open={openCreateDialog} onClose={() => setOpenCreateDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create New User</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6">Create New User</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Add an administrative or support user for the portal.
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
@@ -327,17 +340,11 @@ const UserManagement: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCreateDialog(false)}>Cancel</Button>
+          <Button onClick={() => setOpenCreateDialog(false)} variant="outlined">Cancel</Button>
           <Button
             onClick={handleCreateUser}
             variant="contained"
             disabled={isLoading}
-            sx={{
-              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-              },
-            }}
           >
             {isLoading ? <CircularProgress size={24} /> : 'Create'}
           </Button>
@@ -346,7 +353,12 @@ const UserManagement: React.FC = () => {
 
       {/* Reset Password Dialog */}
       <Dialog open={openResetDialog} onClose={() => setOpenResetDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Reset Password</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6">Reset Password</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Assign a temporary password for the selected user.
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
@@ -365,17 +377,11 @@ const UserManagement: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenResetDialog(false)}>Cancel</Button>
+          <Button onClick={() => setOpenResetDialog(false)} variant="outlined">Cancel</Button>
           <Button
             onClick={handleResetPassword}
             variant="contained"
             disabled={isLoading}
-            sx={{
-              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-              },
-            }}
           >
             {isLoading ? <CircularProgress size={24} /> : 'Reset Password'}
           </Button>

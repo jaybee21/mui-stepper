@@ -22,8 +22,9 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Stack,
 } from '@mui/material';
-import { Delete as DeleteIcon, CloudUpload as UploadIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, CloudUpload as UploadIcon, ImageNotSupported as ImageNotSupportedIcon } from '@mui/icons-material';
 import { API_BASE_URL } from '../config/api';
 import { fetchWithAuth, getAuthToken } from '../utils/auth';
 
@@ -169,13 +170,18 @@ const SignatureUpload: FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ color: '#333', mb: 3 }}>
-        Signature Management
-      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ color: 'text.primary' }}>
+          Signature Management
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+          Upload and manage official approval signatures.
+        </Typography>
+      </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3 }}>
+          <Card sx={{ p: 3, border: '1px solid #E3E6DE' }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Upload New Signature
             </Typography>
@@ -256,7 +262,6 @@ const SignatureUpload: FC = () => {
                 variant="contained"
                 onClick={handleSubmit}
                 disabled={loading || !role || !name || !signatureFile}
-                sx={{ bgcolor: '#13A215', '&:hover': { bgcolor: '#0f7d10' } }}
               >
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Upload Signature'}
               </Button>
@@ -265,7 +270,7 @@ const SignatureUpload: FC = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3 }}>
+          <Card sx={{ p: 3, border: '1px solid #E3E6DE' }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Existing Signatures
             </Typography>
@@ -275,14 +280,16 @@ const SignatureUpload: FC = () => {
                 <CircularProgress />
               </Box>
             ) : signatures.length === 0 ? (
-              <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', p: 3 }}>
-                No signatures uploaded yet
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, p: 3 }}>
+                <ImageNotSupportedIcon sx={{ fontSize: 36, color: 'text.secondary' }} />
+                <Typography variant="subtitle1">No signatures uploaded yet</Typography>
+                <Chip label="Upload a signature to activate" variant="outlined" />
+              </Box>
             ) : (
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
-                    <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                    <TableRow sx={{ bgcolor: '#F1F4EC' }}>
                       <TableCell sx={{ fontWeight: 'bold' }}>Role</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -292,7 +299,7 @@ const SignatureUpload: FC = () => {
                   </TableHead>
                   <TableBody>
                     {signatures.map((sig) => (
-                      <TableRow key={sig.id}>
+                      <TableRow key={sig.id} hover sx={{ '&:hover': { bgcolor: 'rgba(19, 162, 21, 0.04)' } }}>
                         <TableCell>{sig.role}</TableCell>
                         <TableCell>{sig.name}</TableCell>
                         <TableCell>
@@ -305,13 +312,13 @@ const SignatureUpload: FC = () => {
                         <TableCell>{formatDate(sig.created_at)}</TableCell>
                         <TableCell align="center">
                           <Tooltip title="Preview">
-                            <IconButton
-                              size="small"
-                              onClick={() => handlePreview(sig.signature_url || '')}
-                              sx={{ color: '#13A215' }}
-                            >
-                              <UploadIcon />
-                            </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handlePreview(sig.signature_url || '')}
+                              sx={{ color: 'primary.main' }}
+                              >
+                                <UploadIcon />
+                              </IconButton>
                           </Tooltip>
                         </TableCell>
                       </TableRow>
@@ -325,7 +332,12 @@ const SignatureUpload: FC = () => {
       </Grid>
 
       <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Signature Preview</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6">Signature Preview</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Official signature on record.
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ textAlign: 'center', p: 2 }}>
             <img
@@ -339,7 +351,7 @@ const SignatureUpload: FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPreviewOpen(false)}>Close</Button>
+          <Button onClick={() => setPreviewOpen(false)} variant="outlined">Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

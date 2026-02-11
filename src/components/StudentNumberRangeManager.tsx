@@ -151,13 +151,18 @@ const StudentNumberRangeManager: FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 4, color: '#333' }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ color: 'text.primary' }}>
         Student Number Range
       </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+          Manage the active student number allocation range.
+        </Typography>
+      </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3 }}>
+          <Card sx={{ p: 3, border: '1px solid #E3E6DE' }}>
             <Typography variant="h6" gutterBottom>
               Active Range
             </Typography>
@@ -201,7 +206,7 @@ const StudentNumberRangeManager: FC = () => {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card sx={{ p: 3 }}>
+          <Card sx={{ p: 3, border: '1px solid #E3E6DE' }}>
             <Typography variant="h6" gutterBottom>
               Create / Activate Range
             </Typography>
@@ -252,10 +257,6 @@ const StudentNumberRangeManager: FC = () => {
                 variant="contained"
                 onClick={handleSubmit}
                 disabled={submitting}
-                sx={{
-                  bgcolor: '#13A215',
-                  '&:hover': { bgcolor: '#0f7d10' },
-                }}
               >
                 {submitting ? <CircularProgress size={24} color="inherit" /> : 'Save Range'}
               </Button>

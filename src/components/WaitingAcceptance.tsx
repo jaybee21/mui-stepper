@@ -28,7 +28,7 @@ import {
   Snackbar,
   Alert,
 } from '@mui/material';
-import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
+import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon, SearchOff as SearchOffIcon } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import wuaLogo from './wua-logo.png';
@@ -653,21 +653,19 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
   return (
     <Box>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" sx={{ color: '#333' }}>
+        <Box>
+          <Typography variant="h4" sx={{ color: 'text.primary' }}>
           Applications ({applications.length})
         </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            Review applicants awaiting acceptance.
+          </Typography>
+        </Box>
         <Button
           variant="outlined"
           startIcon={showFilters ? <ClearIcon /> : <FilterListIcon />}
           onClick={() => setShowFilters(!showFilters)}
-          sx={{ 
-            color: '#13A215', 
-            borderColor: '#13A215',
-            '&:hover': {
-              borderColor: '#13A215',
-              backgroundColor: 'rgba(19, 162, 21, 0.04)',
-            }
-          }}
+          sx={{ borderColor: 'primary.main' }}
         >
           {showFilters ? 'Hide Filters' : 'Show Filters'}
         </Button>
@@ -675,7 +673,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
       
       <Card sx={{ p: 3, mb: 3 }}>
         {showFilters && (
-          <Card sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5' }}>
+          <Card sx={{ p: 2.5, mb: 3, bgcolor: '#F1F4EC', border: '1px solid #E3E6DE' }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={4}>
                 <TextField
@@ -759,26 +757,13 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
                 variant="outlined"
                 onClick={handleClearFilters}
                 startIcon={<ClearIcon />}
-                sx={{ 
-                  color: '#666', 
-                  borderColor: '#666',
-                  '&:hover': {
-                    borderColor: '#666',
-                    backgroundColor: 'rgba(102, 102, 102, 0.04)',
-                  }
-                }}
+                sx={{ borderColor: 'text.secondary', color: 'text.secondary' }}
               >
                 Clear Filters
               </Button>
               <Button
                 variant="contained"
                 onClick={handleApplyFilters}
-                sx={{ 
-                  bgcolor: '#13A215',
-                  '&:hover': {
-                    bgcolor: '#0f7d10',
-                  }
-                }}
               >
                 Apply Filters
               </Button>
@@ -786,9 +771,9 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
           </Card>
         )}
         
-        <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #eee' }}>
+        <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #E3E6DE' }}>
           <Table sx={{ minWidth: 650 }} aria-label="waiting acceptance table">
-            <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+            <TableHead sx={{ bgcolor: '#F1F4EC' }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Reference Number</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Programme</TableCell>
@@ -800,74 +785,75 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {applications.map((app) => (
-                <TableRow
-                  key={app.id}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { bgcolor: 'rgba(19, 162, 21, 0.04)' } }}
-                >
-                  <TableCell>{app.reference_number}</TableCell>
-                  <TableCell>{app.programme}</TableCell>
-                  <TableCell>{app.satellite_campus}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={app.accepted_status} 
-                      color={getStatusChipColor(app.accepted_status) as "warning" | "success" | "error" | "default"}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={app.paynow_status === 'yes' ? 'Yes' : 'No'} 
-                      color={app.paynow_status === 'yes' ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{formatDate(app.created_at)}</TableCell>
-                  <TableCell align="center">
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => handleViewDetails(app.reference_number)}
-                        sx={{ 
-                          color: '#13A215', 
-                          borderColor: '#13A215',
-                          '&:hover': {
-                            borderColor: '#13A215',
-                            backgroundColor: 'rgba(19, 162, 21, 0.04)',
-                          }
-                        }}
-                      >
-                        View Details
-                      </Button>
-
-                      <Button
-                        variant="contained"
-                        size="small"
-                        disabled={decisionLoadingRef === app.reference_number}
-                        onClick={() => handleDecision(app.reference_number, 'accept')}
-                        sx={{ 
-                          bgcolor: '#13A215',
-                          '&:hover': { bgcolor: '#0f7d10' },
-                        }}
-                      >
-                        Accept
-                      </Button>
-
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                        disabled={decisionLoadingRef === app.reference_number}
-                        onClick={() => handleDecision(app.reference_number, 'reject')}
-                      >
-                        Decline
-                      </Button>
+              {applications.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
+                    <Stack spacing={1} alignItems="center">
+                      <SearchOffIcon sx={{ fontSize: 36, color: 'text.secondary' }} />
+                      <Typography variant="subtitle1">No applications found</Typography>
+                      <Chip label="Adjust filters or refresh" variant="outlined" />
                     </Stack>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                applications.map((app) => (
+                  <TableRow
+                    key={app.id}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { bgcolor: 'rgba(19, 162, 21, 0.04)' } }}
+                  >
+                    <TableCell>{app.reference_number}</TableCell>
+                    <TableCell>{app.programme}</TableCell>
+                    <TableCell>{app.satellite_campus}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={app.accepted_status} 
+                        color={getStatusChipColor(app.accepted_status) as "warning" | "success" | "error" | "default"}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={app.paynow_status === 'yes' ? 'Yes' : 'No'} 
+                        color={app.paynow_status === 'yes' ? 'success' : 'error'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{formatDate(app.created_at)}</TableCell>
+                    <TableCell align="center">
+                      <Stack direction="row" spacing={1} justifyContent="center">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => handleViewDetails(app.reference_number)}
+                          sx={{ borderColor: 'primary.main' }}
+                        >
+                          View Details
+                        </Button>
+
+                        <Button
+                          variant="contained"
+                          size="small"
+                          disabled={decisionLoadingRef === app.reference_number}
+                          onClick={() => handleDecision(app.reference_number, 'accept')}
+                        >
+                          Accept
+                        </Button>
+
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          color="error"
+                          disabled={decisionLoadingRef === app.reference_number}
+                          onClick={() => handleDecision(app.reference_number, 'reject')}
+                        >
+                          Decline
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -879,9 +865,14 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">Application Details</Typography>
+            <Box>
+              <Typography variant="h6">Application Details</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Review applicant information and documents.
+              </Typography>
+            </Box>
             <Stack direction="row" spacing={1}>
               {selectedApplication && (
                 <>
@@ -1060,10 +1051,12 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
             </Box>
           )}
         </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setOpenDialog(false)}>Close</Button>
-      </DialogActions>
-    </Dialog>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} variant="outlined">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={acceptDialogOpen}
@@ -1071,7 +1064,12 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Select Accepted Programme</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Typography variant="h6">Select Accepted Programme</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Choose the programme to finalize acceptance.
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2, color: '#666' }}>
             Choose the programme that will be used to assign the student number.
@@ -1097,7 +1095,7 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAcceptDialogOpen(false)} disabled={acceptLoading}>
+          <Button onClick={() => setAcceptDialogOpen(false)} disabled={acceptLoading} variant="outlined">
             Cancel
           </Button>
           <Button
