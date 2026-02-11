@@ -21,37 +21,21 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-interface Subject {
-  subject_name: string;
-  grade: string;
-  year_written: number;
-}
-
-interface Education {
-  qualification_type: string;
-  examination_board: string;
-  subjects: Subject[];
-}
-
-interface Document {
-  document_type: string;
-  file_path: string;
-  uploaded_at: string;
-}
-
 interface ApplicationDetails {
   referenceNumber: string;
-  startingSemester: string;
+  startingSemester: string | null;
   satelliteCampus: string;
   acceptedStatus: string;
   createdAt: string;
   fullApplication: {
     programme: string;
+    programme1?: string | null;
+    programme2?: string | null;
     preferred_session: string;
     wua_discovery_method: string;
     previous_registration: string;
-    year_of_commencement: string;
-    program_type: string;
+    year_of_commencement: number;
+    program_type: string | null;
     personalDetails: {
       title: string;
       surname: string;
@@ -59,8 +43,6 @@ interface ApplicationDetails {
       citizenship: string;
       phone: string;
       email: string;
-      city: string;
-      country: string;
     };
     nextOfKin: {
       first_name: string;
@@ -68,8 +50,22 @@ interface ApplicationDetails {
       relationship: string;
       contact_tel: string;
     };
-    educationDetails: Education[];
-    documents: Document[];
+    academicSummary?: {
+      olevel_subject_count: number | null;
+      olevel_includes_english: string | null;
+      olevel_includes_maths: string | null;
+      has_alevel: string | null;
+      alevel_passes_e_or_better: number | null;
+      has_professional_cert: string | null;
+      has_diploma: string | null;
+      has_degree: string | null;
+      notes: string | null;
+    };
+    uploads?: Array<{
+      id: number;
+      file_kind: string;
+      created_at: string;
+    }>;
   };
 }
 
@@ -128,6 +124,13 @@ const ApplicationStatus: React.FC = () => {
       default:
         return null;
     }
+  };
+
+  const formatYesNo = (value: string | null | undefined) => {
+    const normalized = (value || '').toString().trim().toUpperCase();
+    if (normalized === 'Y' || normalized === 'YES') return 'Yes';
+    if (normalized === 'N' || normalized === 'NO') return 'No';
+    return value ?? 'N/A';
   };
 
   return (
@@ -255,32 +258,90 @@ const ApplicationStatus: React.FC = () => {
             <Card sx={{ border: '1px solid #E3E6DE' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Education Details
+                  Academic Summary
                 </Typography>
-                {application.fullApplication.educationDetails.map((education, index) => (
-                  <Box key={index} sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" color="primary" gutterBottom>
-                      {education.qualification_type} ({education.examination_board})
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {education.subjects.map((subject, subIndex) => (
-                        <Grid item xs={12} sm={6} md={4} key={subIndex}>
-                        <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
-                          <Typography variant="body1">
-                            {subject.subject_name}
-                          </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Grade: {subject.grade} ({subject.year_written})
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                      ))}
-                    </Grid>
-                    {index < application.fullApplication.educationDetails.length - 1 && (
-                      <Divider sx={{ my: 2 }} />
-                    )}
-                  </Box>
-                ))}
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        O-Level Subject Count
+                      </Typography>
+                      <Typography variant="body1">
+                        {application.fullApplication.academicSummary?.olevel_subject_count ?? 'N/A'}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        O-Level Includes English
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatYesNo(application.fullApplication.academicSummary?.olevel_includes_english)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        O-Level Includes Maths
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatYesNo(application.fullApplication.academicSummary?.olevel_includes_maths)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Has A-Level
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatYesNo(application.fullApplication.academicSummary?.has_alevel)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        A-Level Passes (E or better)
+                      </Typography>
+                      <Typography variant="body1">
+                        {application.fullApplication.academicSummary?.alevel_passes_e_or_better ?? 'N/A'}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Has Diploma
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatYesNo(application.fullApplication.academicSummary?.has_diploma)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Has Degree
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatYesNo(application.fullApplication.academicSummary?.has_degree)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Has Professional Cert
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatYesNo(application.fullApplication.academicSummary?.has_professional_cert)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           </Grid>
@@ -293,14 +354,14 @@ const ApplicationStatus: React.FC = () => {
                   Submitted Documents
                 </Typography>
                 <Grid container spacing={2}>
-                  {application.fullApplication.documents.map((doc, index) => (
+                  {(application.fullApplication.uploads || []).map((doc, index) => (
                     <Grid item xs={12} sm={6} md={4} key={index}>
                       <Paper sx={{ p: 2 }}>
                         <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>
-                          {doc.document_type.replace(/_/g, ' ')}
+                          {doc.file_kind.replace(/_/g, ' ')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}
+                          Uploaded: {new Date(doc.created_at).toLocaleDateString()}
                         </Typography>
                       </Paper>
                     </Grid>
