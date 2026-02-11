@@ -28,7 +28,7 @@ import {
   Snackbar,
   Alert,
 } from '@mui/material';
-import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon, SearchOff as SearchOffIcon } from '@mui/icons-material';
+import { Visibility as VisibilityIcon, Download as DownloadIcon, FilterList as FilterListIcon, Clear as ClearIcon, PictureAsPdf as PdfIcon, SearchOff as SearchOffIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import wuaLogo from './wua-logo.png';
@@ -661,14 +661,24 @@ const WaitingAcceptance: FC<WaitingAcceptanceProps> = ({ totalWaiting }) => {
             Review applicants awaiting acceptance.
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={showFilters ? <ClearIcon /> : <FilterListIcon />}
-          onClick={() => setShowFilters(!showFilters)}
-          sx={{ borderColor: 'primary.main' }}
-        >
-          {showFilters ? 'Hide Filters' : 'Show Filters'}
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={fetchApplications}
+            sx={{ borderColor: 'primary.main' }}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={showFilters ? <ClearIcon /> : <FilterListIcon />}
+            onClick={() => setShowFilters(!showFilters)}
+            sx={{ borderColor: 'primary.main' }}
+          >
+            {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </Button>
+        </Stack>
       </Box>
       
       <Card sx={{ p: 3, mb: 3 }}>

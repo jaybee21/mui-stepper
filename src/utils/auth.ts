@@ -30,9 +30,8 @@ export const setAuthToken = (token: string) => {
 };
 
 export const removeAuthToken = () => {
-  
-  sessionStorage.removeItem('authToken');
-  sessionStorage.removeItem('decodedToken');
+  sessionStorage.clear();
+  localStorage.clear();
 };
 
 export const isAuthenticated = () => {
@@ -60,7 +59,7 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
    
     // Token expired or invalid
     removeAuthToken();
-    window.location.href = '/admin'; // Redirect to login
+    window.location.href = '/apply-online/admin'; // Redirect to login
   }
 
   return response;

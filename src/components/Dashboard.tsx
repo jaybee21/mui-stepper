@@ -271,10 +271,13 @@ const Dashboard: FC = () => {
   };
 
   // Update useEffect to use getUserDetails
+  const [isITDepartment, setIsITDepartment] = useState(false);
+
   useEffect(() => {
     const userDetails = getUserDetails();
     if (userDetails?.role) {
       setUserRole(userDetails.role);
+      setIsITDepartment(userDetails.department?.toLowerCase() === 'it');
     } else {
       console.error('No user role found in session storage');
     }
@@ -296,21 +299,24 @@ const Dashboard: FC = () => {
       text: "Applicants with PIN",
       icon: <PersonIcon />,
     },
-    ...(userRole === 'admin' ? [
+    ...(userRole === 'admin' && isITDepartment ? [
       {
         id: TabId.USER_MANAGEMENT,
         text: "User Management",
         icon: <PeopleIcon />,
+        itOnly: true,
       },
       {
         id: TabId.SIGNATURE_UPLOAD,
         text: "Signature Upload",
         icon: <EditNoteIcon />,
+        itOnly: true,
       },
       {
         id: TabId.STUDENT_NUMBER_RANGE,
         text: "Student Number Range",
         icon: <SettingsIcon />,
+        itOnly: true,
       }
     ] : []),
   ];
@@ -565,11 +571,11 @@ const Dashboard: FC = () => {
       case TabId.WITH_PIN:
         return <WithPin totalWithPin={0} />;
       case TabId.USER_MANAGEMENT:
-        return <UserManagement />;
+        return isITDepartment ? <UserManagement /> : <DashboardContent />;
       case TabId.SIGNATURE_UPLOAD:
-        return <SignatureUpload />;
+        return isITDepartment ? <SignatureUpload /> : <DashboardContent />;
       case TabId.STUDENT_NUMBER_RANGE:
-        return <StudentNumberRangeManager />;
+        return isITDepartment ? <StudentNumberRangeManager /> : <DashboardContent />;
       default:
         return <DashboardContent />;
     }
@@ -594,7 +600,7 @@ const Dashboard: FC = () => {
   const handleLogout = () => {
     removeAuthToken();
     handleCloseUserMenu();
-    window.location.href = "/admin";
+    window.location.href = "/apply-online/admin";
   };
 
   const handlePasswordReset = () => {
@@ -884,16 +890,30 @@ const Dashboard: FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: activeTab === item.id ? 600 : 400,
-                        color:
-                          activeTab === item.id ? "primary.main" : "text.primary",
-                      }}
-                    >
-                      {item.text}
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: activeTab === item.id ? 600 : 400,
+                          color:
+                            activeTab === item.id ? "primary.main" : "text.primary",
+                        }}
+                      >
+                        {item.text}
+                      </Typography>
+                      {item.itOnly && (
+                        <Chip
+                          label="IT Only"
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            borderColor: "warning.main",
+                            color: "warning.main",
+                            fontWeight: 600,
+                          }}
+                        />
+                      )}
+                    </Box>
                   }
                 />
               </ListItemButton>

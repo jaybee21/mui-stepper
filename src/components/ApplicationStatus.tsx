@@ -15,6 +15,7 @@ import {
   ListItem,
   ListItemText,
   Chip,
+  Stack,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
@@ -131,15 +132,17 @@ const ApplicationStatus: React.FC = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 1200, mx: 'auto' }}>
-      <Paper sx={{ p: 4, mb: 4 }}>
-        <Typography variant="h4" gutterBottom align="center" color="primary">
-          Check Your Application Status
-        </Typography>
-        <Typography variant="body1" gutterBottom align="center" color="text.secondary">
-          Enter your reference number to view your application status and details
-        </Typography>
+      <Paper sx={{ p: 4, mb: 4, border: '1px solid #E3E6DE' }}>
+        <Stack spacing={1} sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" color="text.primary">
+            Check Your Application Status
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Enter your reference number to view your application status and details.
+          </Typography>
+        </Stack>
         
-        <Box sx={{ display: 'flex', gap: 2, mt: 3, maxWidth: 600, mx: 'auto' }}>
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, maxWidth: 600, mx: 'auto', flexWrap: 'wrap' }}>
           <TextField
             fullWidth
             label="Reference Number"
@@ -152,13 +155,7 @@ const ApplicationStatus: React.FC = () => {
             variant="contained"
             onClick={handleCheckStatus}
             disabled={loading}
-            sx={{
-              minWidth: 120,
-              background: 'linear-gradient(45deg, #13A215, #1DBDD0)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #0B8A0D, #189AAD)',
-              },
-            }}
+            sx={{ minWidth: 140 }}
           >
             {loading ? <CircularProgress size={24} /> : 'Check Status'}
           </Button>
@@ -169,7 +166,7 @@ const ApplicationStatus: React.FC = () => {
         <Grid container spacing={3}>
           {/* Status Card */}
           <Grid item xs={12}>
-            <Card>
+            <Card sx={{ border: '1px solid #E3E6DE' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Chip
@@ -193,7 +190,7 @@ const ApplicationStatus: React.FC = () => {
 
           {/* Application Details */}
           <Grid item xs={12} md={6}>
-            <Card>
+            <Card sx={{ border: '1px solid #E3E6DE' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Application Details
@@ -230,7 +227,7 @@ const ApplicationStatus: React.FC = () => {
 
           {/* Personal Details */}
           <Grid item xs={12} md={6}>
-            <Card>
+            <Card sx={{ border: '1px solid #E3E6DE' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Personal Details
@@ -248,12 +245,6 @@ const ApplicationStatus: React.FC = () => {
                       secondary={`${application.fullApplication.personalDetails.phone} | ${application.fullApplication.personalDetails.email}`}
                     />
                   </ListItem>
-                  <ListItem>
-                    <ListItemText
-                      primary="Location"
-                      secondary={`${application.fullApplication.personalDetails.city}, ${application.fullApplication.personalDetails.country}`}
-                    />
-                  </ListItem>
                 </List>
               </CardContent>
             </Card>
@@ -261,7 +252,7 @@ const ApplicationStatus: React.FC = () => {
 
           {/* Education Details */}
           <Grid item xs={12}>
-            <Card>
+            <Card sx={{ border: '1px solid #E3E6DE' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Education Details
@@ -274,10 +265,10 @@ const ApplicationStatus: React.FC = () => {
                     <Grid container spacing={2}>
                       {education.subjects.map((subject, subIndex) => (
                         <Grid item xs={12} sm={6} md={4} key={subIndex}>
-                          <Paper sx={{ p: 2 }}>
-                            <Typography variant="body1">
-                              {subject.subject_name}
-                            </Typography>
+                        <Paper sx={{ p: 2, border: '1px solid #E3E6DE' }}>
+                          <Typography variant="body1">
+                            {subject.subject_name}
+                          </Typography>
                             <Typography variant="body2" color="text.secondary">
                               Grade: {subject.grade} ({subject.year_written})
                             </Typography>
@@ -296,7 +287,7 @@ const ApplicationStatus: React.FC = () => {
 
           {/* Documents */}
           <Grid item xs={12}>
-            <Card>
+            <Card sx={{ border: '1px solid #E3E6DE' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Submitted Documents

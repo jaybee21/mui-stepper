@@ -32,6 +32,7 @@ import ApplicationStatus from './components/ApplicationStatus';
 import VerifyOffer from './components/VerifyOffer';
 import AdminThemeProvider from './components/AdminThemeProvider';
 import backgroundImage from './assets/wuabackground.jpg';
+import { isAuthenticated as hasAuthToken, getUserDetails } from './utils/auth';
 
 const steps = [
   'Program Selection',
@@ -413,7 +414,13 @@ const MainContent: FC = () => {
 };
 
 const App: FC = (): ReactElement => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(hasAuthToken());
+  const userDetails = getUserDetails();
+  const isITDepartment = userDetails?.department?.toLowerCase() === 'it';
+
+  useEffect(() => {
+    setIsAuthenticated(hasAuthToken());
+  }, []);
   const withAdminTheme = (element: ReactElement) => (
     <AdminThemeProvider>{element}</AdminThemeProvider>
   );
@@ -421,7 +428,7 @@ const App: FC = (): ReactElement => {
   return (
     <Routes>
       <Route path="/" element={<MainContent />} />
-      <Route path="/apply-online/verify-offer" element={withAdminTheme(<VerifyOffer />)} />
+      <Route path="/verify-offer" element={withAdminTheme(<VerifyOffer />)} />
       <Route 
         path="/admin" 
         element={
@@ -442,7 +449,14 @@ const App: FC = (): ReactElement => {
           )
         } 
       />
-      <Route path="/user-management" element={withAdminTheme(<UserManagement />)} />
+      <Route
+        path="/user-management"
+        element={
+          withAdminTheme(
+            isAuthenticated && isITDepartment ? <UserManagement /> : <Navigate to="/admin/dashboard" />
+          )
+        }
+      />
       <Route path="/application-status" element={<ApplicationStatus />} />
     </Routes>
   );
